@@ -57,10 +57,9 @@ async def analyze_text_api(request: ByteCountRequest):
 
 @app.post("/api/convert")
 async def convert_api(request: ConvertRequest):
-    result = AnalyzerService.convert_units(
+    return AnalyzerService.convert_units(
         request.category, request.value, request.from_unit, request.to_unit
     )
-    return {"result": result}
 
 @app.post("/api/beautify-json")
 async def beautify_json_api(request: JsonRequest):

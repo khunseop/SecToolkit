@@ -34,18 +34,28 @@ class AnalyzerService:
     }
 
     @staticmethod
-    def convert_units(category: str, value: float, from_unit: str, to_unit: str) -> float:
+    def convert_units(category: str, value: float, from_unit: str, to_unit: str) -> dict:
         try:
             cat_map = AnalyzerService.CONVERSION_MAP.get(category)
-            if not cat_map: return 0.0
+            if not cat_map: return {"result": 0.0, "formula": ""}
             
-            # 기준 단위(Base)로 변환 후 대상 단위로 변환
+            # 변환 결과 계산
             base_value = value * cat_map[from_unit]
-            result = base_value / cat_map[to_unit]
+            result = round(base_value / cat_map[to_unit], 6)
             
-            return round(result, 6)
+            # 공식 문자열 생성 (1 단위 기준)
+            ratio = cat_map[from_unit] / cat_map[to_unit]
+            # 소수점이 너무 길면 정리
+            if ratio >= 1:
+                ratio_str = f"{ratio:g}"
+            else:
+                ratio_str = f"{ratio:.10g}"
+                
+            formula = f"1 {from_unit} = {ratio_str} {to_unit}"
+            
+            return {"result": result, "formula": formula}
         except Exception:
-            return 0.0
+            return {"result": 0.0, "formula": ""}
 
     @staticmethod
     def beautify_json(data: str) -> dict:

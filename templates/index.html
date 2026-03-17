@@ -244,7 +244,7 @@
                         <option value="time">Time</option>
                     </select>
                 </div>
-                <div class="converter-box p-4 rounded bg-light border">
+                <div class="converter-box p-4 rounded bg-light border mb-3">
                     <div class="converter-side">
                         <input type="number" class="form-control form-control-lg text-center mb-2" id="leftVal" value="1" oninput="doConvert('left')">
                         <select class="form-select form-select-sm" id="leftUnit" onchange="doConvert('left')"></select>
@@ -255,6 +255,7 @@
                         <select class="form-select form-select-sm" id="rightUnit" onchange="doConvert('left')"></select>
                     </div>
                 </div>
+                <div id="unitFormula" class="text-center small text-muted font-monospace"></div>
             </div>
         </div>
 
@@ -329,6 +330,7 @@
             });
             const data = await response.json();
             document.getElementById(direction === 'left' ? 'rightVal' : 'leftVal').value = data.result;
+            document.getElementById('unitFormula').innerText = data.formula || "";
         }
 
         function switchCategory(catId) {
