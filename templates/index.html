@@ -8,11 +8,11 @@
     <style>
         :root {
             --primary-color: #0d6efd;
-            --bg-color: #f4f7f9;
+            --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-main: #212529;
             --text-muted: #6c757d;
-            --sub-nav-bg: #eaeff3;
+            --sub-nav-bg: #f1f3f5;
         }
 
         body {
@@ -20,51 +20,61 @@
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding-bottom: 50px;
+            padding-bottom: 30px;
         }
 
-        /* Top Navigation */
+        /* Compact Header */
         .header-nav {
             background-color: var(--card-bg);
             border-bottom: 1px solid #dee2e6;
-            padding: 1rem 0 0.5rem 0;
+            padding: 0.5rem 0;
             position: sticky;
             top: 0;
             z-index: 1000;
         }
 
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 0;
+            color: var(--text-main);
+        }
+
         .main-nav .nav-link {
             color: var(--text-muted);
-            font-weight: 700;
-            font-size: 0.9rem;
+            font-weight: 600;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            border-radius: 0;
+            border-bottom: 2px solid transparent;
         }
 
         .main-nav .nav-link.active {
             color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
-            background: none;
+            border-bottom: 2px solid var(--primary-color);
         }
 
         /* Sub Navigation */
         .sub-nav-container {
             background-color: var(--sub-nav-bg);
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #dee2e6;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #e9ecef;
         }
 
         .sub-nav .nav-link {
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
-            padding: 0.4rem 1rem;
-            margin: 0 0.25rem;
-            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            margin: 0 0.15rem;
+            border-radius: 15px;
             cursor: pointer;
             white-space: nowrap;
         }
@@ -72,57 +82,54 @@
         .sub-nav .nav-link.active {
             background-color: var(--card-bg);
             color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         /* Main Content */
         .main-container {
-            max-width: 800px;
-            margin: 2rem auto;
+            max-width: 850px;
+            margin: 1.5rem auto;
             padding: 0 1rem;
         }
 
         .tool-card {
             background: var(--card-bg);
             border: 1px solid #e9ecef;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         .content-section { display: none; }
-        .content-section.active { display: block; animation: slideUp 0.3s ease-out; }
+        .content-section.active { display: block; animation: fadeIn 0.2s ease-out; }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .form-control {
+        .form-control, .form-select {
             border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 0.8rem;
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
         }
 
-        /* Mobile Adjustments */
+        h4 { font-size: 1.15rem; margin-bottom: 1.25rem; }
+
+        /* Mobile */
         @media (max-width: 768px) {
-            .sub-nav {
-                display: flex;
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            .sub-nav::-webkit-scrollbar { display: none; }
+            .header-container { flex-direction: column; gap: 0.5rem; }
+            .sub-nav { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start !important; }
             .main-container { margin: 1rem auto; }
-            .tool-card { padding: 1.5rem; }
         }
     </style>
 </head>
 <body>
     <header class="header-nav">
-        <div class="container text-center">
-            <h5 class="fw-bold mb-3">SecToolkit</h5>
-            <nav class="nav main-nav justify-content-center">
+        <div class="container header-container">
+            <h1 class="brand-name">SecToolkit</h1>
+            <nav class="nav main-nav">
                 <a class="nav-link active" onclick="switchCategory('transform')" id="cat-transform">Transform</a>
                 <a class="nav-link" onclick="switchCategory('analysis')" id="cat-analysis">Analysis</a>
                 <a class="nav-link" onclick="switchCategory('security')" id="cat-security">Security</a>
@@ -132,19 +139,16 @@
 
     <div class="sub-nav-container">
         <div class="container">
-            <!-- Transform Sub Menu -->
             <nav class="nav sub-nav justify-content-center" id="sub-transform">
                 <a class="nav-link active" onclick="showTool('url')" id="tool-url">URL</a>
                 <a class="nav-link" onclick="showTool('base64')" id="tool-base64">Base64</a>
-                <a class="nav-link" onclick="showTool('counter')" id="tool-counter">Byte Counter</a>
+                <a class="nav-link" onclick="showTool('counter')" id="tool-counter">Text Counter</a>
             </nav>
-            <!-- Analysis Sub Menu -->
             <nav class="nav sub-nav justify-content-center d-none" id="sub-analysis">
                 <a class="nav-link" onclick="showTool('converter')" id="tool-converter">Unit Converter</a>
                 <a class="nav-link" onclick="showTool('beautifier')" id="tool-beautifier">JSON Beautifier</a>
                 <a class="nav-link" onclick="showTool('har')" id="tool-har">HAR Extractor</a>
             </nav>
-            <!-- Security Sub Menu -->
             <nav class="nav sub-nav justify-content-center d-none" id="sub-security">
                 <a class="nav-link" onclick="showTool('placeholder')" id="tool-placeholder">Coming Soon</a>
             </nav>
@@ -152,98 +156,72 @@
     </div>
 
     <div class="main-container">
-        
-        <!-- URL Encoder/Decoder -->
+        <!-- URL -->
         <div id="view-url" class="content-section active">
             <div class="tool-card">
-                <h4 class="fw-bold mb-4">URL Encoder / Decoder</h4>
-                <div class="mb-3">
-                    <label class="small text-muted mb-2">Input Data</label>
-                    <textarea class="form-control" id="urlInput" rows="5" placeholder="텍스트 또는 인코딩된 URL을 입력하세요..."></textarea>
+                <h4 class="fw-bold">URL Encoder / Decoder</h4>
+                <textarea class="form-control mb-3" id="urlInput" rows="5" placeholder="데이터를 입력하세요..."></textarea>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('url', 'encode')">Encode</button></div>
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('url', 'decode')">Decode</button></div>
                 </div>
-                <div class="row g-2 mb-4">
-                    <div class="col-6"><button class="btn btn-primary w-100" onclick="transform('url', 'encode')">Encode</button></div>
-                    <div class="col-6"><button class="btn btn-primary w-100" onclick="transform('url', 'decode')">Decode</button></div>
-                </div>
-                <div class="mb-3">
-                    <label class="small text-muted mb-2">Result</label>
-                    <textarea class="form-control" id="urlOutput" rows="5" readonly></textarea>
-                </div>
-                <button class="btn btn-outline-secondary w-100" onclick="copyToClipboard('urlOutput')">Copy Result</button>
+                <textarea class="form-control mb-3" id="urlOutput" rows="5" readonly></textarea>
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('urlOutput')">결과 복사</button>
             </div>
         </div>
 
-        <!-- Base64 Encoder/Decoder -->
+        <!-- Base64 -->
         <div id="view-base64" class="content-section">
             <div class="tool-card">
-                <h4 class="fw-bold mb-4">Base64 Encoder / Decoder</h4>
-                <div class="mb-3">
-                    <label class="small text-muted mb-2">Input Data</label>
-                    <textarea class="form-control" id="base64Input" rows="5" placeholder="텍스트 또는 Base64 데이터를 입력하세요..."></textarea>
+                <h4 class="fw-bold">Base64 Encoder / Decoder</h4>
+                <textarea class="form-control mb-3" id="base64Input" rows="5" placeholder="데이터를 입력하세요..."></textarea>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'encode')">Encode</button></div>
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'decode')">Decode</button></div>
                 </div>
-                <div class="row g-2 mb-4">
-                    <div class="col-6"><button class="btn btn-primary w-100" onclick="transform('base64', 'encode')">Encode</button></div>
-                    <div class="col-6"><button class="btn btn-primary w-100" onclick="transform('base64', 'decode')">Decode</button></div>
-                </div>
-                <div class="mb-3">
-                    <label class="small text-muted mb-2">Result</label>
-                    <textarea class="form-control" id="base64Output" rows="5" readonly></textarea>
-                </div>
-                <button class="btn btn-outline-secondary w-100" onclick="copyToClipboard('base64Output')">Copy Result</button>
+                <textarea class="form-control mb-3" id="base64Output" rows="5" readonly></textarea>
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('base64Output')">결과 복사</button>
             </div>
         </div>
 
-        <!-- Counter -->
+        <!-- Text Counter -->
         <div id="view-counter" class="content-section">
             <div class="tool-card">
-                <h4 class="fw-bold mb-4">Byte Counter</h4>
-                <div class="mb-3">
-                    <label class="small text-muted mb-2">Text Content</label>
-                    <textarea class="form-control" id="counterInput" rows="6" placeholder="텍스트를 입력하세요..."></textarea>
-                </div>
+                <h4 class="fw-bold">Text Counter</h4>
+                <textarea class="form-control mb-3" id="counterInput" rows="6" placeholder="분석할 텍스트를 입력하세요..."></textarea>
                 <div class="mb-4">
-                    <label class="small text-muted mb-2">Encoding Type</label>
-                    <select class="form-select" id="encodingSelect">
+                    <select class="form-select form-select-sm" id="encodingSelect">
                         <option value="utf-8">UTF-8</option>
                         <option value="euc-kr">EUC-KR</option>
                     </select>
                 </div>
-                
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <div class="p-3 rounded-4 text-center bg-light border h-100">
-                            <div class="text-muted small mb-1">Total Bytes</div>
-                            <div class="h3 mb-0 fw-bold text-primary" id="byteResult">0</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="p-3 rounded-4 text-center bg-light border h-100">
-                            <div class="text-muted small mb-1">Total Characters</div>
-                            <div class="h3 mb-0 fw-bold text-dark" id="charCountResult">0</div>
-                        </div>
-                    </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6"><div class="p-2 rounded bg-light border text-center"><small class="text-muted d-block">Bytes</small><span class="h4 fw-bold text-primary" id="byteResult">0</span></div></div>
+                    <div class="col-6"><div class="p-2 rounded bg-light border text-center"><small class="text-muted d-block">Characters</small><span class="h4 fw-bold" id="charCountResult">0</span></div></div>
                 </div>
-
-                <div class="p-3 rounded-4 bg-light border">
-                    <label class="small text-muted mb-3 d-block">Character Type Analysis</label>
+                <div class="p-3 rounded bg-light border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted fw-bold">Analysis Details</small>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copyAnalysisReport()">결과 복사</button>
+                    </div>
                     <div class="d-flex flex-wrap gap-2" id="detailResult">
-                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">한글: 0</span>
-                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">영어: 0</span>
-                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">숫자: 0</span>
-                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">공백: 0</span>
-                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">특수문자: 0</span>
+                        <span class="badge bg-white text-dark border fw-normal">한글: 0</span>
+                        <span class="badge bg-white text-dark border fw-normal">영어: 0</span>
+                        <span class="badge bg-white text-dark border fw-normal">숫자: 0</span>
+                        <span class="badge bg-white text-dark border fw-normal">공백: 0</span>
+                        <span class="badge bg-white text-dark border fw-normal">특수문자: 0</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Analysis Tools (Existing) -->
+        <!-- Analysis Tools -->
         <div id="view-converter" class="content-section">
-            <div class="tool-card">
-                <h4 class="fw-bold mb-4">Network Unit Converter</h4>
-                <div class="row align-items-center g-4">
+            <div class="tool-card text-center">
+                <h4 class="fw-bold">Network Unit Converter</h4>
+                <div class="row align-items-center g-3">
                     <div class="col-5"><input type="number" class="form-control text-center" id="mbpsInput" oninput="convert('mbps')" placeholder="Mbps"></div>
-                    <div class="col-2 text-center text-muted h4 mb-0">⇄</div>
+                    <div class="col-2 text-muted">⇄</div>
                     <div class="col-5"><input type="number" class="form-control text-center" id="mbsInput" oninput="convert('mbs')" placeholder="MB/s"></div>
                 </div>
             </div>
@@ -251,24 +229,24 @@
 
         <div id="view-beautifier" class="content-section">
             <div class="tool-card">
-                <h4 class="fw-bold mb-4">JSON Beautifier</h4>
-                <textarea class="form-control mb-3" id="jsonInput" rows="6" placeholder="Paste messy JSON..."></textarea>
-                <button class="btn btn-primary w-100 mb-4" onclick="beautifyJson()">Format JSON</button>
-                <textarea class="form-control mb-3" id="jsonOutput" rows="10" readonly></textarea>
-                <button class="btn btn-outline-secondary w-100" onclick="copyToClipboard('jsonOutput')">Copy Result</button>
+                <h4 class="fw-bold">JSON Beautifier</h4>
+                <textarea class="form-control mb-3" id="jsonInput" rows="6" placeholder="Paste JSON..."></textarea>
+                <button class="btn btn-primary btn-sm w-100 mb-3" onclick="beautifyJson()">Format JSON</button>
+                <textarea class="form-control mb-3" id="jsonOutput" rows="8" readonly></textarea>
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('jsonOutput')">결과 복사</button>
             </div>
         </div>
 
         <div id="view-har" class="content-section">
             <div class="tool-card">
-                <h4 class="fw-bold mb-4">HAR Header Extractor</h4>
-                <div class="input-group mb-4">
-                    <input type="file" class="form-control" id="harFile" accept=".har">
-                    <button class="btn btn-primary" onclick="uploadHar()">Extract</button>
+                <h4 class="fw-bold">HAR Header Extractor</h4>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control form-control-sm" id="harFile" accept=".har">
+                    <button class="btn btn-primary btn-sm" onclick="uploadHar()">Extract</button>
                 </div>
                 <div class="table-responsive" id="harTableContainer" style="display:none;">
-                    <table class="table table-hover table-sm">
-                        <thead class="table-light"><tr><th>Method</th><th>URL</th><th>Auth</th></tr></thead>
+                    <table class="table table-sm small">
+                        <thead><tr><th>Method</th><th>URL</th><th>Auth</th></tr></thead>
                         <tbody id="harResults"></tbody>
                     </table>
                 </div>
@@ -276,9 +254,8 @@
         </div>
 
         <div id="view-placeholder" class="content-section text-center py-5">
-            <h5 class="text-muted">Coming Soon (Phase 3)</h5>
+            <p class="text-muted">Coming Soon</p>
         </div>
-
     </div>
 
     <script src="/static/js/bootstrap.bundle.min.js"></script>
@@ -297,7 +274,6 @@
             document.getElementById('tool-' + toolId).classList.add('active');
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + toolId).classList.add('active');
-            window.scrollTo(0, 0);
         }
 
         async function transform(type, action) {
@@ -321,42 +297,22 @@
             const data = await response.json();
             document.getElementById('byteResult').innerText = data.bytes;
             document.getElementById('charCountResult').innerText = data.chars;
-            
             if (data.details) {
-                const detailsHtml = Object.entries(data.details).map(([key, value]) => 
-                    `<span class="badge bg-white text-dark border p-2 px-3 fw-normal">${key}: ${value}</span>`
+                document.getElementById('detailResult').innerHTML = Object.entries(data.details).map(([k, v]) => 
+                    `<span class="badge bg-white text-dark border fw-normal">${k}: ${v}</span>`
                 ).join('');
-                document.getElementById('detailResult').innerHTML = detailsHtml;
             }
         });
 
         function copyAnalysisReport() {
-            const bytes = document.getElementById('byteResult').innerText;
-            const chars = document.getElementById('charCountResult').innerText;
-            const details = Array.from(document.querySelectorAll('#detailResult span'))
-                .map(el => el.innerText)
-                .join(', ');
-            const encoding = document.getElementById('encodingSelect').value.toUpperCase();
-            
-            const report = `[Text Analysis Report]\n- Bytes (${encoding}): ${bytes}\n- Total Characters: ${chars}\n- Details: ${details}`;
-            
-            const tempInput = document.createElement('textarea');
-            tempInput.value = report;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            alert("분석 결과가 복사되었습니다.");
+            const report = `[Text Analysis]\n- Bytes: ${document.getElementById('byteResult').innerText}\n- Chars: ${document.getElementById('charCountResult').innerText}\n- Details: ${Array.from(document.querySelectorAll('#detailResult span')).map(s=>s.innerText).join(', ')}`;
+            copyTextToClipboard(report);
         }
 
         async function convert(fromUnit) {
             const val = fromUnit === 'mbps' ? document.getElementById('mbpsInput').value : document.getElementById('mbsInput').value;
             if(!val) return;
-            const response = await fetch('/api/convert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ value: parseFloat(val), from_unit: fromUnit })
-            });
+            const response = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: parseFloat(val), from_unit: fromUnit }) });
             const result = await response.json();
             if(fromUnit === 'mbps') document.getElementById('mbsInput').value = result.mbs;
             else document.getElementById('mbpsInput').value = result.mbps;
@@ -370,10 +326,9 @@
         }
 
         async function uploadHar() {
-            const fileInput = document.getElementById('harFile');
-            if(!fileInput.files[0]) return;
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            const file = document.getElementById('harFile').files[0];
+            if(!file) return;
+            const formData = new FormData(); formData.append('file', file);
             const response = await fetch('/api/extract-har', { method: 'POST', body: formData });
             const data = await response.json();
             const resultsBody = document.getElementById('harResults');
@@ -381,35 +336,20 @@
             if(data.results) {
                 document.getElementById('harTableContainer').style.display = 'block';
                 data.results.forEach(item => {
-                    resultsBody.innerHTML += `<tr><td><span class="badge bg-light text-dark border">${item.method}</span></td><td class="text-truncate" style="max-width:250px;">${item.url}</td><td class="text-truncate" style="max-width:150px;">${item.headers.Authorization}</td></tr>`;
+                    resultsBody.innerHTML += `<tr><td><span class="badge bg-light text-dark border">${item.method}</span></td><td class="text-truncate" style="max-width:200px;">${item.url}</td><td class="text-truncate" style="max-width:100px;">${item.headers.Authorization}</td></tr>`;
                 });
             }
         }
 
-        function copyToClipboard(id) {
-            const copyText = document.getElementById(id);
-            if (!copyText.value) return;
+        function copyToClipboard(id) { copyTextToClipboard(document.getElementById(id).value); }
 
-            // Priority 1: Navigator Clipboard API
+        function copyTextToClipboard(text) {
+            if (!text) return;
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(copyText.value)
-                    .then(() => alert("복사되었습니다."))
-                    .catch(err => fallbackCopy(copyText));
+                navigator.clipboard.writeText(text).then(() => alert("복사되었습니다."));
             } else {
-                fallbackCopy(copyText);
+                const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); alert("복사되었습니다.");
             }
-        }
-
-        function fallbackCopy(element) {
-            element.select();
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) alert("복사되었습니다.");
-                else alert("복사에 실패했습니다.");
-            } catch (err) {
-                alert("복사 기능을 지원하지 않는 브라우저입니다.");
-            }
-            window.getSelection().removeAllRanges();
         }
     </script>
 </body>
