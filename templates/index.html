@@ -313,7 +313,7 @@
         }
 
         document.getElementById('counterInput').addEventListener('input', async function() {
-            const response = await fetch('/api/count-bytes', {
+            const response = await fetch('/api/analyze-text', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: this.value, encoding: document.getElementById('encodingSelect').value })
@@ -329,6 +329,25 @@
                 document.getElementById('detailResult').innerHTML = detailsHtml;
             }
         });
+
+        function copyAnalysisReport() {
+            const bytes = document.getElementById('byteResult').innerText;
+            const chars = document.getElementById('charCountResult').innerText;
+            const details = Array.from(document.querySelectorAll('#detailResult span'))
+                .map(el => el.innerText)
+                .join(', ');
+            const encoding = document.getElementById('encodingSelect').value.toUpperCase();
+            
+            const report = `[Text Analysis Report]\n- Bytes (${encoding}): ${bytes}\n- Total Characters: ${chars}\n- Details: ${details}`;
+            
+            const tempInput = document.createElement('textarea');
+            tempInput.value = report;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert("분석 결과가 복사되었습니다.");
+        }
 
         async function convert(fromUnit) {
             const val = fromUnit === 'mbps' ? document.getElementById('mbpsInput').value : document.getElementById('mbsInput').value;
