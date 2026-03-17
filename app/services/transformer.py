@@ -3,13 +3,22 @@ import base64
 
 class TransformerService:
     @staticmethod
-    def decode_data(data: str, decode_type: str) -> str:
+    def url_transform(data: str, action: str) -> str:
         try:
-            if decode_type == 'url':
+            if action == 'encode':
+                return urllib.parse.quote(data)
+            else:
                 return urllib.parse.unquote(data)
-            elif decode_type == 'base64':
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    @staticmethod
+    def base64_transform(data: str, action: str) -> str:
+        try:
+            if action == 'encode':
+                return base64.b64encode(data.encode('utf-8')).decode('utf-8')
+            else:
                 return base64.b64decode(data).decode('utf-8')
-            return "Unsupported type"
         except Exception as e:
             return f"Error: {str(e)}"
 

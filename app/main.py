@@ -10,9 +10,9 @@ import os
 app = FastAPI(title="SecToolkit")
 
 # API Models
-class DecodeRequest(BaseModel):
+class TransformRequest(BaseModel):
     data: str
-    type: str
+    action: str  # 'encode' or 'decode'
 
 class ByteCountRequest(BaseModel):
     text: str
@@ -25,20 +25,24 @@ class ConvertRequest(BaseModel):
 class JsonRequest(BaseModel):
     data: str
 
-# 정적 파일 설정 (Bootstrap 등 로컬 에셋 서빙용)
+# Static & Templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# 템플릿 설정
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/api/decode")
-async def decode_api(request: DecodeRequest):
-    result = TransformerService.decode_data(request.data, request.type)
-    return {"decoded": result}
+# API Endpoints
+@app.post("/api/transform/url")
+async def transform_url_api(request: TransformRequest):
+    result = TransformerService.url_transform(request.data, request.action)
+    return {"result": result}
+
+@app.post("/api/transform/base64")
+async def transform_base64_api(request: TransformRequest):
+    result = TransformerService.base64_transform(request.data, request.action)
+    return {"result": result}
 
 @app.post("/api/count-bytes")
 async def count_bytes_api(request: ByteCountRequest):
