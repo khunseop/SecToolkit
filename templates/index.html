@@ -23,11 +23,11 @@
             padding-bottom: 30px;
         }
 
-        /* Compact Header */
+        /* Compact Header - Left Aligned */
         .header-nav {
             background-color: var(--card-bg);
             border-bottom: 1px solid #dee2e6;
-            padding: 0.5rem 0;
+            padding: 0.4rem 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -35,8 +35,9 @@
 
         .header-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 2rem;
         }
 
         .brand-name {
@@ -44,6 +45,7 @@
             font-size: 1.1rem;
             margin: 0;
             color: var(--text-main);
+            white-space: nowrap;
         }
 
         .main-nav .nav-link {
@@ -51,38 +53,45 @@
             font-weight: 600;
             font-size: 0.85rem;
             text-transform: uppercase;
-            padding: 0.4rem 0.8rem;
+            padding: 0.3rem 0.7rem;
             cursor: pointer;
-            border-bottom: 2px solid transparent;
+            border-bottom: none !important; /* No underline */
+            border-radius: 6px;
+            transition: all 0.2s;
         }
 
         .main-nav .nav-link.active {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color) !important;
+            background-color: rgba(13, 110, 253, 0.08);
         }
 
-        /* Sub Navigation */
+        /* Sub Navigation - Left Aligned */
         .sub-nav-container {
             background-color: var(--sub-nav-bg);
-            padding: 0.4rem 0;
+            padding: 0.3rem 0;
             border-bottom: 1px solid #e9ecef;
+        }
+
+        .sub-nav {
+            justify-content: flex-start !important;
         }
 
         .sub-nav .nav-link {
             color: var(--text-muted);
             font-size: 0.8rem;
             font-weight: 500;
-            padding: 0.25rem 0.75rem;
-            margin: 0 0.15rem;
-            border-radius: 15px;
+            padding: 0.2rem 0.6rem;
+            margin-right: 0.3rem;
+            border-radius: 6px;
             cursor: pointer;
             white-space: nowrap;
+            border-bottom: none !important; /* No underline */
         }
 
         .sub-nav .nav-link.active {
             background-color: var(--card-bg);
-            color: var(--primary-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            color: var(--primary-color) !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         /* Main Content */
@@ -101,10 +110,10 @@
         }
 
         .content-section { display: none; }
-        .content-section.active { display: block; animation: fadeIn 0.2s ease-out; }
+        .content-section.active { display: block; animation: fadeIn 0.15s ease-out; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+            from { opacity: 0; transform: translateY(3px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -115,12 +124,13 @@
             font-size: 0.9rem;
         }
 
-        h4 { font-size: 1.15rem; margin-bottom: 1.25rem; }
+        h4 { font-size: 1.1rem; margin-bottom: 1.25rem; font-weight: 700; }
 
         /* Mobile */
         @media (max-width: 768px) {
-            .header-container { flex-direction: column; gap: 0.5rem; }
-            .sub-nav { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start !important; }
+            .header-container { gap: 1rem; }
+            .brand-name { font-size: 1rem; }
+            .sub-nav { overflow-x: auto; flex-wrap: nowrap; }
             .main-container { margin: 1rem auto; }
         }
     </style>
@@ -139,17 +149,17 @@
 
     <div class="sub-nav-container">
         <div class="container">
-            <nav class="nav sub-nav justify-content-center" id="sub-transform">
+            <nav class="nav sub-nav" id="sub-transform">
                 <a class="nav-link active" onclick="showTool('url')" id="tool-url">URL</a>
                 <a class="nav-link" onclick="showTool('base64')" id="tool-base64">Base64</a>
                 <a class="nav-link" onclick="showTool('counter')" id="tool-counter">Text Counter</a>
             </nav>
-            <nav class="nav sub-nav justify-content-center d-none" id="sub-analysis">
+            <nav class="nav sub-nav d-none" id="sub-analysis">
                 <a class="nav-link" onclick="showTool('converter')" id="tool-converter">Unit Converter</a>
                 <a class="nav-link" onclick="showTool('beautifier')" id="tool-beautifier">JSON Beautifier</a>
                 <a class="nav-link" onclick="showTool('har')" id="tool-har">HAR Extractor</a>
             </nav>
-            <nav class="nav sub-nav justify-content-center d-none" id="sub-security">
+            <nav class="nav sub-nav d-none" id="sub-security">
                 <a class="nav-link" onclick="showTool('placeholder')" id="tool-placeholder">Coming Soon</a>
             </nav>
         </div>
@@ -217,11 +227,11 @@
 
         <!-- Analysis Tools -->
         <div id="view-converter" class="content-section">
-            <div class="tool-card text-center">
+            <div class="tool-card">
                 <h4 class="fw-bold">Network Unit Converter</h4>
                 <div class="row align-items-center g-3">
                     <div class="col-5"><input type="number" class="form-control text-center" id="mbpsInput" oninput="convert('mbps')" placeholder="Mbps"></div>
-                    <div class="col-2 text-muted">⇄</div>
+                    <div class="col-2 text-muted text-center">⇄</div>
                     <div class="col-5"><input type="number" class="form-control text-center" id="mbsInput" oninput="convert('mbs')" placeholder="MB/s"></div>
                 </div>
             </div>
