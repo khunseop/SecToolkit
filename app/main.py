@@ -12,15 +12,17 @@ app = FastAPI(title="SecToolkit")
 # API Models
 class TransformRequest(BaseModel):
     data: str
-    action: str  # 'encode' or 'decode'
+    action: str
 
 class ByteCountRequest(BaseModel):
     text: str
     encoding: str
 
 class ConvertRequest(BaseModel):
+    category: str
     value: float
     from_unit: str
+    to_unit: str
 
 class JsonRequest(BaseModel):
     data: str
@@ -34,6 +36,10 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 # API Endpoints
+@app.get("/api/units")
+async def get_units():
+    return {k: list(v.keys()) for k, v in AnalyzerService.CONVERSION_MAP.items()}
+
 @app.post("/api/transform/url")
 async def transform_url_api(request: TransformRequest):
     result = TransformerService.url_transform(request.data, request.action)
@@ -51,8 +57,10 @@ async def analyze_text_api(request: ByteCountRequest):
 
 @app.post("/api/convert")
 async def convert_api(request: ConvertRequest):
-    result = AnalyzerService.convert_network_unit(request.value, request.from_unit)
-    return result
+    result = AnalyzerService.convert_units(
+        request.category, request.value, request.from_unit, request.to_unit
+    )
+    return {"result": result}
 
 @app.post("/api/beautify-json")
 async def beautify_json_api(request: JsonRequest):

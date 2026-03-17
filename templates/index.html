@@ -55,7 +55,7 @@
             text-transform: uppercase;
             padding: 0.3rem 0.7rem;
             cursor: pointer;
-            border-bottom: none !important; /* No underline */
+            border-bottom: none !important;
             border-radius: 6px;
             transition: all 0.2s;
         }
@@ -65,7 +65,7 @@
             background-color: rgba(13, 110, 253, 0.08);
         }
 
-        /* Sub Navigation - Left Aligned */
+        /* Sub Navigation */
         .sub-nav-container {
             background-color: var(--sub-nav-bg);
             padding: 0.3rem 0;
@@ -85,7 +85,7 @@
             border-radius: 6px;
             cursor: pointer;
             white-space: nowrap;
-            border-bottom: none !important; /* No underline */
+            border-bottom: none !important;
         }
 
         .sub-nav .nav-link.active {
@@ -126,12 +126,19 @@
 
         h4 { font-size: 1.1rem; margin-bottom: 1.25rem; font-weight: 700; }
 
-        /* Mobile */
+        /* Unit Converter Custom Style */
+        .converter-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .converter-side { flex: 1; }
+
         @media (max-width: 768px) {
             .header-container { gap: 1rem; }
-            .brand-name { font-size: 1rem; }
             .sub-nav { overflow-x: auto; flex-wrap: nowrap; }
-            .main-container { margin: 1rem auto; }
+            .converter-box { flex-direction: column; }
+            .converter-divider { transform: rotate(90deg); margin: 0.5rem 0; }
         }
     </style>
 </head>
@@ -225,14 +232,28 @@
             </div>
         </div>
 
-        <!-- Analysis Tools -->
+        <!-- Unit Converter (Enhanced) -->
         <div id="view-converter" class="content-section">
             <div class="tool-card">
-                <h4 class="fw-bold">Network Unit Converter</h4>
-                <div class="row align-items-center g-3">
-                    <div class="col-5"><input type="number" class="form-control text-center" id="mbpsInput" oninput="convert('mbps')" placeholder="Mbps"></div>
-                    <div class="col-2 text-muted text-center">⇄</div>
-                    <div class="col-5"><input type="number" class="form-control text-center" id="mbsInput" oninput="convert('mbs')" placeholder="MB/s"></div>
+                <h4 class="fw-bold">Unit Converter</h4>
+                <div class="mb-4">
+                    <label class="small text-muted mb-2">Category</label>
+                    <select class="form-select" id="unitCategory" onchange="loadUnits()">
+                        <option value="data">Data Size (Byte/bit)</option>
+                        <option value="speed">Transfer Speed (bps/Bs)</option>
+                        <option value="time">Time</option>
+                    </select>
+                </div>
+                <div class="converter-box p-4 rounded bg-light border">
+                    <div class="converter-side">
+                        <input type="number" class="form-control form-control-lg text-center mb-2" id="leftVal" value="1" oninput="doConvert('left')">
+                        <select class="form-select form-select-sm" id="leftUnit" onchange="doConvert('left')"></select>
+                    </div>
+                    <div class="converter-divider text-muted h4 mb-0">⇄</div>
+                    <div class="converter-side">
+                        <input type="number" class="form-control form-control-lg text-center mb-2" id="rightVal" oninput="doConvert('right')">
+                        <select class="form-select form-select-sm" id="rightUnit" onchange="doConvert('left')"></select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -270,6 +291,46 @@
 
     <script src="/static/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Global variables for units
+        let unitMap = {};
+
+        window.onload = async () => {
+            const resp = await fetch('/api/units');
+            unitMap = await resp.json();
+            loadUnits();
+        };
+
+        function loadUnits() {
+            const cat = document.getElementById('unitCategory').value;
+            const units = unitMap[cat] || [];
+            const leftSelect = document.getElementById('leftUnit');
+            const rightSelect = document.getElementById('rightUnit');
+            
+            leftSelect.innerHTML = rightSelect.innerHTML = '';
+            units.forEach((u, i) => {
+                leftSelect.innerHTML += `<option value="${u}" ${i===0?'selected':''}>${u}</option>`;
+                rightSelect.innerHTML += `<option value="${u}" ${i===1?'selected':''}>${u}</option>`;
+            });
+            doConvert('left');
+        }
+
+        async function doConvert(direction) {
+            const cat = document.getElementById('unitCategory').value;
+            const val = document.getElementById(direction === 'left' ? 'leftVal' : 'rightVal').value;
+            const fromUnit = document.getElementById(direction === 'left' ? 'leftUnit' : 'rightUnit').value;
+            const toUnit = document.getElementById(direction === 'left' ? 'rightUnit' : 'leftUnit').value;
+
+            if (val === '') return;
+
+            const response = await fetch('/api/convert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: cat, value: parseFloat(val), from_unit: fromUnit, to_unit: toUnit })
+            });
+            const data = await response.json();
+            document.getElementById(direction === 'left' ? 'rightVal' : 'leftVal').value = data.result;
+        }
+
         function switchCategory(catId) {
             document.querySelectorAll('.main-nav .nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById('cat-' + catId).classList.add('active');
@@ -317,15 +378,6 @@
         function copyAnalysisReport() {
             const report = `[Text Analysis]\n- Bytes: ${document.getElementById('byteResult').innerText}\n- Chars: ${document.getElementById('charCountResult').innerText}\n- Details: ${Array.from(document.querySelectorAll('#detailResult span')).map(s=>s.innerText).join(', ')}`;
             copyTextToClipboard(report);
-        }
-
-        async function convert(fromUnit) {
-            const val = fromUnit === 'mbps' ? document.getElementById('mbpsInput').value : document.getElementById('mbsInput').value;
-            if(!val) return;
-            const response = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: parseFloat(val), from_unit: fromUnit }) });
-            const result = await response.json();
-            if(fromUnit === 'mbps') document.getElementById('mbsInput').value = result.mbs;
-            else document.getElementById('mbpsInput').value = result.mbps;
         }
 
         async function beautifyJson() {
