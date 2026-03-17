@@ -1,5 +1,6 @@
 import urllib.parse
 import base64
+import re
 
 class TransformerService:
     @staticmethod
@@ -23,8 +24,30 @@ class TransformerService:
             return f"Error: {str(e)}"
 
     @staticmethod
-    def count_bytes(text: str, encoding: str) -> int:
+    def analyze_text(text: str, encoding: str) -> dict:
         try:
-            return len(text.encode(encoding))
+            byte_size = len(text.encode(encoding))
+            char_count = len(text)
+            
+            # 문자 유형별 정규식 분석
+            hangul = len(re.findall(r'[가-힣ㄱ-ㅎㅏ-ㅣ]', text))
+            english = len(re.findall(r'[a-zA-Z]', text))
+            numbers = len(re.findall(r'[0-9]', text))
+            whitespace = len(re.findall(r'\s', text))
+            
+            # 특수문자 = 전체 - (한글 + 영어 + 숫자 + 공백)
+            special = char_count - (hangul + english + numbers + whitespace)
+            
+            return {
+                "bytes": byte_size,
+                "chars": char_count,
+                "details": {
+                    "한글": hangul,
+                    "영어": english,
+                    "숫자": numbers,
+                    "공백": whitespace,
+                    "특수문자": special
+                }
+            }
         except Exception:
-            return 0
+            return {"bytes": 0, "chars": 0, "details": {}}

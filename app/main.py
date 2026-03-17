@@ -46,8 +46,8 @@ async def transform_base64_api(request: TransformRequest):
 
 @app.post("/api/count-bytes")
 async def count_bytes_api(request: ByteCountRequest):
-    result = TransformerService.count_bytes(request.text, request.encoding)
-    return {"bytes": result}
+    result = TransformerService.analyze_text(request.text, request.encoding)
+    return result
 
 @app.post("/api/convert")
 async def convert_api(request: ConvertRequest):

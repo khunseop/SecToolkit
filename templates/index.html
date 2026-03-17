@@ -296,8 +296,16 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: this.value, encoding: document.getElementById('encodingSelect').value })
             });
-            const result = await response.json();
-            document.getElementById('byteResult').innerText = result.bytes;
+            const data = await response.json();
+            document.getElementById('byteResult').innerText = data.bytes;
+            document.getElementById('charCountResult').innerText = data.chars;
+            
+            if (data.details) {
+                const detailsHtml = Object.entries(data.details).map(([key, value]) => 
+                    `<span class="badge bg-white text-dark border p-2 px-3 fw-normal">${key}: ${value}</span>`
+                ).join('');
+                document.getElementById('detailResult').innerHTML = detailsHtml;
+            }
         });
 
         async function convert(fromUnit) {
