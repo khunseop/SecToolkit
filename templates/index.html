@@ -208,9 +208,31 @@
                         <option value="euc-kr">EUC-KR</option>
                     </select>
                 </div>
-                <div class="p-4 rounded-4 text-center bg-light border">
-                    <div class="text-muted small mb-1">Total Size</div>
-                    <div class="h2 mb-0"><span id="byteResult" class="text-primary fw-bold">0</span> <small class="fs-6 text-muted">Bytes</small></div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 text-center bg-light border h-100">
+                            <div class="text-muted small mb-1">Total Bytes</div>
+                            <div class="h3 mb-0 fw-bold text-primary" id="byteResult">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 text-center bg-light border h-100">
+                            <div class="text-muted small mb-1">Total Characters</div>
+                            <div class="h3 mb-0 fw-bold text-dark" id="charCountResult">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-4 bg-light border">
+                    <label class="small text-muted mb-3 d-block">Character Type Analysis</label>
+                    <div class="d-flex flex-wrap gap-2" id="detailResult">
+                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">한글: 0</span>
+                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">영어: 0</span>
+                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">숫자: 0</span>
+                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">공백: 0</span>
+                        <span class="badge bg-white text-dark border p-2 px-3 fw-normal">특수문자: 0</span>
+                    </div>
                 </div>
             </div>
         </div>
