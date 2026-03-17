@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from app.services.transformer import TransformerService
 from app.services.analyzer import AnalyzerService
+from app.services.pac_service import PacService
 import json
 import os
 
@@ -26,6 +27,10 @@ class ConvertRequest(BaseModel):
 
 class JsonRequest(BaseModel):
     data: str
+
+class PacRequest(BaseModel):
+    pac_url: str
+    target_url: str
 
 # Static & Templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -75,6 +80,10 @@ async def extract_har_api(file: UploadFile = File(...)):
         return {"results": result}
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/api/test-pac")
+async def test_pac_api(request: PacRequest):
+    return PacService.test_pac(request.pac_url, request.target_url)
 
 if __name__ == "__main__":
     import uvicorn
