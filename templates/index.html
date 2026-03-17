@@ -339,9 +339,28 @@
 
         function copyToClipboard(id) {
             const copyText = document.getElementById(id);
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            alert("복사되었습니다.");
+            if (!copyText.value) return;
+
+            // Priority 1: Navigator Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(copyText.value)
+                    .then(() => alert("복사되었습니다."))
+                    .catch(err => fallbackCopy(copyText));
+            } else {
+                fallbackCopy(copyText);
+            }
+        }
+
+        function fallbackCopy(element) {
+            element.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) alert("복사되었습니다.");
+                else alert("복사에 실패했습니다.");
+            } catch (err) {
+                alert("복사 기능을 지원하지 않는 브라우저입니다.");
+            }
+            window.getSelection().removeAllRanges();
         }
     </script>
 </body>
