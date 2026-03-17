@@ -3,135 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecToolkit - 폐쇄망 보안 분석 도구</title>
+    <title>SecToolkit | Modern Security Utility</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #212529; padding-top: 20px; position: fixed; width: inherit; z-index: 100; }
-        .sidebar a { color: #adb5bd; padding: 10px 20px; display: block; text-decoration: none; transition: 0.3s; cursor: pointer; }
-        .sidebar a:hover, .sidebar a.active { color: white; background-color: #343a40; border-left: 4px solid #0d6efd; }
-        .main-content { margin-left: 16.666667%; padding: 30px; }
-        .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .section { display: none; }
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-color: #3b82f6;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: #f1f5f9;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Sidebar */
+        .sidebar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            height: 100vh;
+            position: fixed;
+            padding: 2rem 1rem;
+            z-index: 1000;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: var(--glass-bg);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-color);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Main Content Glass Card */
+        .main-content {
+            margin-left: 16.666667%;
+            padding: 3rem;
+            transition: opacity 0.4s ease;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        h2, h4 { font-weight: 700; letter-spacing: -0.025em; }
+        
+        /* Input & Controls */
+        .form-control, .form-select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        .btn-outline-primary {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 12px;
+        }
+
+        /* Section Animations */
+        .section { display: none; animation: fadeIn 0.5s ease; }
         .section.active { display: block; }
-        .table-responsive { max-height: 500px; overflow-y: auto; }
-        .header-value { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+        /* Table Style */
+        .table { color: #cbd5e1; }
+        .table thead th { border-bottom: 2px solid var(--glass-border); color: #94a3b8; }
+        .table td { border-bottom: 1px solid var(--glass-border); vertical-align: middle; }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- 사이드바 -->
+            <!-- Sidebar -->
             <nav class="col-md-2 d-none d-md-block sidebar">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">SecToolkit</h4>
-                    <small class="text-muted">v0.2 (Phase 2)</small>
+                <div class="mb-5 px-3">
+                    <h3 class="text-white mb-1">SecToolkit</h3>
+                    <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20">v0.2.1 Stable</div>
                 </div>
-                <a onclick="showSection('decoder')" id="nav-decoder" class="active">Transform & Count</a>
-                <a onclick="showSection('analyzer')" id="nav-analyzer">Analysis & Metrics</a>
-                <a onclick="showSection('security')" id="nav-security">Extension & Security</a>
+                
+                <div class="nav flex-column">
+                    <a onclick="showSection('decoder')" id="nav-decoder" class="nav-link active">
+                        <i class="bi bi-transform"></i> Transform
+                    </a>
+                    <a onclick="showSection('analyzer')" id="nav-analyzer" class="nav-link">
+                        <i class="bi bi-graph-up"></i> Analysis
+                    </a>
+                    <a onclick="showSection('security')" id="nav-security" class="nav-link">
+                        <i class="bi bi-shield-lock"></i> Security
+                    </a>
+                </div>
             </nav>
 
-            <!-- 메인 컨텐츠 -->
+            <!-- Main Content -->
             <main class="col-md-10 main-content">
-                <!-- Section 1: Transform & Count -->
+                
+                <!-- Section: Transform -->
                 <div id="decoder" class="section active">
-                    <h2 class="mb-4">Data Transform & Counter</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">Multi-Decoder</div>
-                                <div class="card-body">
-                                    <textarea class="form-control mb-3" id="decoderInput" rows="5" placeholder="인코딩된 데이터를 입력하세요..."></textarea>
-                                    <div class="d-flex gap-2 mb-3">
-                                        <button class="btn btn-outline-primary btn-sm" onclick="decode('url')">URL Decode</button>
-                                        <button class="btn btn-outline-primary btn-sm" onclick="decode('base64')">Base64 Decode</button>
-                                    </div>
-                                    <textarea class="form-control mb-3" id="decoderOutput" rows="5" readonly placeholder="결과가 여기에 표시됩니다..."></textarea>
-                                    <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('decoderOutput')">Copy to Clipboard</button>
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded-4">
+                            <i class="bi bi-transform text-primary fs-4"></i>
+                        </div>
+                        <h2 class="mb-0">Transform & Count</h2>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <div class="glass-card">
+                                <h4 class="mb-4">Multi-Decoder</h4>
+                                <textarea class="form-control mb-4" id="decoderInput" rows="6" placeholder="Paste encoded data here..."></textarea>
+                                <div class="d-flex gap-3 mb-4">
+                                    <button class="btn btn-primary" onclick="decode('url')">URL Decode</button>
+                                    <button class="btn btn-primary" onclick="decode('base64')">Base64 Decode</button>
                                 </div>
+                                <textarea class="form-control mb-4" id="decoderOutput" rows="6" readonly placeholder="Result..."></textarea>
+                                <button class="btn btn-outline-primary" onclick="copyToClipboard('decoderOutput')">
+                                    <i class="bi bi-clipboard"></i> Copy Result
+                                </button>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-success text-white">Byte Counter</div>
-                                <div class="card-body">
-                                    <textarea class="form-control mb-3" id="counterInput" rows="5" placeholder="텍스트를 입력하세요..."></textarea>
-                                    <select class="form-select mb-3" id="encodingSelect">
+                        <div class="col-md-5">
+                            <div class="glass-card">
+                                <h4 class="mb-4">Byte Counter</h4>
+                                <textarea class="form-control mb-4" id="counterInput" rows="6" placeholder="Type text to count bytes..."></textarea>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Encoding</label>
+                                    <select class="form-select" id="encodingSelect">
                                         <option value="utf-8">UTF-8</option>
                                         <option value="euc-kr">EUC-KR</option>
                                     </select>
-                                    <div class="alert alert-info"><strong>Result:</strong> <span id="byteResult">0</span> Bytes</div>
+                                </div>
+                                <div class="p-4 rounded-4 bg-black bg-opacity-20 border border-white border-opacity-5">
+                                    <div class="text-muted small mb-1">Calculated Size</div>
+                                    <div class="h2 mb-0"><span id="byteResult" class="text-primary">0</span> <small class="fs-6 text-muted">Bytes</small></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 2: Analysis & Metrics -->
+                <!-- Section: Analysis -->
                 <div id="analyzer" class="section">
-                    <h2 class="mb-4">Analysis & Metrics</h2>
-                    <div class="row">
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="p-3 bg-warning bg-opacity-10 rounded-4">
+                            <i class="bi bi-graph-up text-warning fs-4"></i>
+                        </div>
+                        <h2 class="mb-0">Analysis & Metrics</h2>
+                    </div>
+
+                    <div class="row g-4">
                         <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header bg-warning text-dark">Network Unit Converter</div>
-                                <div class="card-body">
-                                    <div class="input-group mb-3">
-                                        <input type="number" class="form-control" id="mbpsInput" placeholder="Mbps" oninput="convert('mbps')">
-                                        <span class="input-group-text">Mbps</span>
-                                    </div>
-                                    <div class="text-center mb-3">⇅</div>
-                                    <div class="input-group mb-3">
-                                        <input type="number" class="form-control" id="mbsInput" placeholder="MB/s" oninput="convert('mbs')">
-                                        <span class="input-group-text">MB/s</span>
-                                    </div>
+                            <div class="glass-card h-100">
+                                <h4 class="mb-4">Network Converter</h4>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Mbps</label>
+                                    <input type="number" class="form-control" id="mbpsInput" oninput="convert('mbps')">
+                                </div>
+                                <div class="text-center mb-4 text-muted"><i class="bi bi-arrow-down-up"></i></div>
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small">MB/s</label>
+                                    <input type="number" class="form-control" id="mbsInput" oninput="convert('mbs')">
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header bg-info text-white">JSON Beautifier</div>
-                                <div class="card-body">
-                                    <textarea class="form-control mb-3" id="jsonInput" rows="5" placeholder="정렬할 JSON 데이터를 입력하세요..."></textarea>
-                                    <button class="btn btn-primary btn-sm mb-3" onclick="beautifyJson()">Beautify</button>
-                                    <textarea class="form-control mb-3" id="jsonOutput" rows="5" readonly placeholder="결과 JSON..."></textarea>
-                                    <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('jsonOutput')">Copy to Clipboard</button>
+                            <div class="glass-card h-100">
+                                <h4 class="mb-4">JSON Beautifier</h4>
+                                <textarea class="form-control mb-4" id="jsonInput" rows="6" placeholder="Paste messy JSON..."></textarea>
+                                <div class="d-flex gap-3 mb-4">
+                                    <button class="btn btn-primary" onclick="beautifyJson()">Beautify JSON</button>
+                                    <button class="btn btn-outline-primary" onclick="copyToClipboard('jsonOutput')">Copy</button>
                                 </div>
+                                <textarea class="form-control" id="jsonOutput" rows="8" readonly placeholder="Output..."></textarea>
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-header bg-dark text-white">HAR Header Extractor</div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <input class="form-control" type="file" id="harFile" accept=".har">
+                            <div class="glass-card">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 class="mb-0">HAR Header Extractor</h4>
+                                    <div class="d-flex gap-3">
+                                        <input class="form-control form-control-sm" type="file" id="harFile" accept=".har">
+                                        <button class="btn btn-primary btn-sm px-4" onclick="uploadHar()">Extract</button>
                                     </div>
-                                    <button class="btn btn-primary btn-sm mb-3" onclick="uploadHar()">Extract Headers</button>
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-sm" id="harTable" style="display:none;">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Method</th>
-                                                    <th>URL</th>
-                                                    <th>Auth</th>
-                                                    <th>Cookie</th>
-                                                    <th>XFF</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="harResults"></tbody>
-                                        </table>
-                                    </div>
+                                </div>
+                                <div class="table-responsive rounded-4 overflow-hidden" id="harTableContainer" style="display:none;">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th width="100">Method</th>
+                                                <th>URL</th>
+                                                <th>Authorization</th>
+                                                <th>Cookie</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="harResults"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 3: Security (Placeholder) -->
+                <!-- Section: Security -->
                 <div id="security" class="section">
-                    <h2 class="mb-4">Extension & Security</h2>
-                    <div class="alert alert-secondary">준비 중인 기능입니다. (Phase 3)</div>
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="p-3 bg-info bg-opacity-10 rounded-4">
+                            <i class="bi bi-shield-lock text-info fs-4"></i>
+                        </div>
+                        <h2 class="mb-0">Security Tools</h2>
+                    </div>
+                    <div class="glass-card text-center py-5">
+                        <i class="bi bi-gear-wide-connected fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="text-muted">Phase 3 Features Incoming</h4>
+                        <p class="text-muted mb-0">JWT Decoder, IP Access Control, and Security Payloads are under development.</p>
+                    </div>
                 </div>
+
             </main>
         </div>
     </div>
@@ -141,7 +286,7 @@
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
-            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
             document.getElementById('nav-' + sectionId).classList.add('active');
         }
 
@@ -208,14 +353,13 @@
             resultsBody.innerHTML = '';
             
             if(data.results) {
-                document.getElementById('harTable').style.display = 'table';
+                document.getElementById('harTableContainer').style.display = 'block';
                 data.results.forEach(item => {
                     const row = `<tr>
-                        <td><span class="badge bg-secondary">${item.method}</span></td>
-                        <td class="header-value" title="${item.url}">${item.url}</td>
-                        <td class="header-value" title="${item.headers.Authorization}">${item.headers.Authorization}</td>
-                        <td class="header-value" title="${item.headers.Cookie}">${item.headers.Cookie}</td>
-                        <td class="header-value" title="${item.headers['X-Forwarded-For']}">${item.headers['X-Forwarded-For']}</td>
+                        <td><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20">${item.method}</span></td>
+                        <td class="small text-truncate" style="max-width: 300px;" title="${item.url}">${item.url}</td>
+                        <td class="small text-truncate" style="max-width: 150px;" title="${item.headers.Authorization}">${item.headers.Authorization}</td>
+                        <td class="small text-truncate" style="max-width: 150px;" title="${item.headers.Cookie}">${item.headers.Cookie}</td>
                     </tr>`;
                     resultsBody.innerHTML += row;
                 });
@@ -226,7 +370,7 @@
             const copyText = document.getElementById(id);
             copyText.select();
             navigator.clipboard.writeText(copyText.value);
-            alert("복사되었습니다.");
+            // Simple toast or feedback can be added here
         }
     </script>
 </body>
