@@ -10,9 +10,9 @@
 - [x] Byte Counter 구현 (UTF-8/EUC-KR)
 
 ## Phase 2: Analysis Suite
-- [ ] Network Unit Converter 구현
-- [ ] JSON Beautifier 구현
-- [ ] HAR Header Extractor 구현
+- [x] Network Unit Converter 구현
+- [x] JSON Beautifier 구현
+- [x] HAR Header Extractor 구현
 
 ## Phase 3: Extension & Security
 - [ ] IP 기반 접근 제어 기능
