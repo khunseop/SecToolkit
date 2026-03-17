@@ -1,0 +1,20 @@
+# SecToolkit 작업 목록
+
+## Phase 1: Core Framework (MVP)
+- [x] 프로젝트 초기화 및 Git 설정 (README, .gitignore)
+- [x] 가상환경 설정 및 의존성 파일 생성 (requirements.txt)
+- [x] FastAPI 기본 구조 및 디렉토리 구성 (static, templates, app)
+- [x] Bootstrap 5 로컬 에셋 준비 (CDN 없이 동작하도록 설정)
+- [x] 기본 레이아웃 템플릿 작성 (사이드바/탭 구조)
+- [x] Multi-Decoder 구현 (URL/Base64)
+- [x] Byte Counter 구현 (UTF-8/EUC-KR)
+
+## Phase 2: Analysis Suite
+- [ ] Network Unit Converter 구현
+- [ ] JSON Beautifier 구현
+- [ ] HAR Header Extractor 구현
+
+## Phase 3: Extension & Security
+- [ ] IP 기반 접근 제어 기능
+- [ ] JWT 디코더 추가
+- [ ] 보안 페이로드 생성기 추가
