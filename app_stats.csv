@@ -1,0 +1,13 @@
+language,filename,blank,comment,code,"github.com/AlDanial/cloc v 2.08  T=0.02 s (703.0 files/s 56816.2 lines/s)"
+HTML,./templates/index.html,42,3,400
+Python,./app/services/analyzer.py,8,4,73
+Python,./app/main.py,17,3,70
+Markdown,./prd.md,19,0,51
+Python,./tests/test_api.py,8,2,50
+Python,./app/services/transformer.py,6,2,45
+Python,./app/services/pac_service.py,4,5,30
+Markdown,./README.md,5,0,20
+Text,./requirements.txt,0,0,9
+CSS,./static/css/bootstrap.min.css,0,5,1
+JavaScript,./static/js/bootstrap.bundle.min.js,0,6,1
+SUM,,109,30,750

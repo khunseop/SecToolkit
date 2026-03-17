@@ -32,6 +32,11 @@ class PacRequest(BaseModel):
     pac_url: str
     target_url: str
 
+class PacDiffRequest(BaseModel):
+    prod_url: str
+    test_url: str
+    sample_url: str
+
 # Static & Templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -84,6 +89,10 @@ async def extract_har_api(file: UploadFile = File(...)):
 @app.post("/api/test-pac")
 async def test_pac_api(request: PacRequest):
     return PacService.test_pac(request.pac_url, request.target_url)
+
+@app.post("/api/diff-pac")
+async def diff_pac_api(request: PacDiffRequest):
+    return PacService.diff_pac(request.prod_url, request.test_url, request.sample_url)
 
 if __name__ == "__main__":
     import uvicorn
