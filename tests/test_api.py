@@ -1,33 +1,41 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from unittest.mock import patch, MagicMock
 
 client = TestClient(app)
 
-def test_decode_url():
-    response = client.post("/api/decode", json={"data": "hello%20world", "type": "url"})
+def test_transform_url():
+    response = client.post("/api/transform/url", json={"data": "hello world", "action": "encode"})
     assert response.status_code == 200
-    assert response.json() == {"decoded": "hello world"}
+    assert response.json() == {"result": "hello%20world"}
+    
+    response = client.post("/api/transform/url", json={"data": "hello%20world", "action": "decode"})
+    assert response.status_code == 200
+    assert response.json() == {"result": "hello world"}
 
-def test_decode_base64():
-    response = client.post("/api/decode", json={"data": "aGVsbG8=", "type": "base64"})
+def test_transform_base64():
+    response = client.post("/api/transform/base64", json={"data": "hello", "action": "encode"})
     assert response.status_code == 200
-    assert response.json() == {"decoded": "hello"}
+    assert response.json() == {"result": "aGVsbG8="}
+    
+    response = client.post("/api/transform/base64", json={"data": "aGVsbG8=", "action": "decode"})
+    assert response.status_code == 200
+    assert response.json() == {"result": "hello"}
 
-def test_count_bytes():
-    response = client.post("/api/count-bytes", json={"text": "안녕", "encoding": "utf-8"})
+def test_analyze_text():
+    response = client.post("/api/analyze-text", json={"text": "안녕", "encoding": "utf-8"})
     assert response.status_code == 200
-    assert response.json() == {"bytes": 6}
+    assert response.json()["bytes"] == 6
 
-def test_convert_network_unit():
-    # Mbps to MB/s
-    response = client.post("/api/convert", json={"value": 100, "from_unit": "mbps"})
+def test_convert_units():
+    response = client.post("/api/convert", json={
+        "category": "speed",
+        "value": 100,
+        "from_unit": "Mbps",
+        "to_unit": "MB/s"
+    })
     assert response.status_code == 200
-    assert response.json() == {"mbps": 100, "mbs": 12.5}
-
-    # MB/s to Mbps
-    response = client.post("/api/convert", json={"value": 10, "from_unit": "mbs"})
-    assert response.status_code == 200
-    assert response.json() == {"mbps": 80, "mbs": 10}
+    assert response.json()["result"] == 11.920929
 
 def test_beautify_json():
     response = client.post("/api/beautify-json", json={"data": '{"a":1,"b":2}'})
@@ -58,3 +66,32 @@ def test_extract_har():
     assert response.status_code == 200
     assert len(response.json()["results"]) == 1
     assert response.json()["results"][0]["headers"]["Authorization"] == "Bearer token123"
+
+@patch('requests.get')
+def test_pac_services(mock_get):
+    # Mock PAC content
+    pac_content = 'function FindProxyForURL(url, host) { if (shExpMatch(host, "*.google.com")) return "PROXY 8.8.8.8:8080"; return "DIRECT"; }'
+    
+    mock_resp = MagicMock()
+    mock_resp.text = pac_content
+    mock_resp.status_code = 200
+    mock_get.return_value = mock_resp
+    
+    # Test PAC Tester
+    response = client.post("/api/test-pac", json={
+        "pac_url": "http://example.com/proxy.pac",
+        "target_url": "https://www.google.com"
+    })
+    assert response.status_code == 200
+    assert response.json()["result"] == "PROXY 8.8.8.8:8080"
+    assert "8.8.8.8:8080" in response.json()["matched_rule"]
+    
+    # Test PAC Diff
+    response = client.post("/api/diff-pac", json={
+        "prod_url": "http://example.com/prod.pac",
+        "test_url": "http://example.com/test.pac",
+        "sample_url": "https://www.google.com"
+    })
+    assert response.status_code == 200
+    assert response.json()["prod_status"]["proxy"] == "PROXY 8.8.8.8:8080"
+    assert "diff_result" in response.json()

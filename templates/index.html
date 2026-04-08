@@ -86,8 +86,13 @@
                 <div class="mb-4"><label class="small text-muted mb-2">Target URL</label><input type="text" class="form-control" id="targetUrl" placeholder="https://www.google.com"></div>
                 <button class="btn btn-primary w-100 mb-4" onclick="testPac()">Test Proxy</button>
                 <div id="pacResultBox" style="display:none;">
-                    <div class="p-3 rounded bg-light border mb-3"><small class="text-muted d-block mb-1">Resulting Proxy</small><div class="h5 fw-bold text-primary mb-0" id="pacResultText"></div></div>
-                    <label class="small text-muted mb-2">PAC File Preview</label><textarea class="form-control small text-muted" id="pacPreview" rows="5" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
+                    <div class="p-3 rounded bg-light border mb-3">
+                        <small class="text-muted d-block mb-1">Resulting Proxy</small>
+                        <div class="h5 fw-bold text-primary mb-2" id="pacResultText"></div>
+                        <small class="text-muted d-block mb-1">Matched Rule (Heuristic)</small>
+                        <div class="small fw-bold text-dark" id="pacMatchedRule"></div>
+                    </div>
+                    <label class="small text-muted mb-2">PAC File Preview</label><textarea class="form-control small text-muted" id="pacPreview" rows="10" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
                 </div>
             </div>
         </div>
@@ -249,7 +254,7 @@
                 card.className = 'p-3 rounded border h-100 border-success-subtle bg-success-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-success';
                 validText.innerText = "Syntax OK";
-                proxyText.innerText = "Sample Result: " + status.proxy;
+                proxyText.innerHTML = `Result: ${status.proxy}<br><small class="text-muted">Rule: ${status.matched_rule || '-'}</small>`;
             } else {
                 card.className = 'p-3 rounded border h-100 border-danger-subtle bg-danger-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-danger';
@@ -364,9 +369,11 @@
             document.getElementById('pacResultBox').style.display = 'block';
             if(data.error) {
                 document.getElementById('pacResultText').innerText = "Error";
+                document.getElementById('pacMatchedRule').innerText = "-";
                 document.getElementById('pacPreview').value = data.error;
             } else {
                 document.getElementById('pacResultText').innerText = data.result;
+                document.getElementById('pacMatchedRule').innerText = data.matched_rule || "N/A";
                 document.getElementById('pacPreview').value = data.pac_preview;
             }
         }
