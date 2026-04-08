@@ -13,93 +13,8 @@ class PacService:
         return url
 
     @staticmethod
-    def _find_matching_rule(pac_text: str, target_url: str, host: str) -> dict:
-        """Find the exact matching line by instrumenting the PAC file with fallback."""
-        import re
-        
-        # 1. Get original result first as fallback in case instrumentation fails
-        fallback_res = {"proxy": "DIRECT", "matched_rule": "Default (Matched but line tracking failed)", "line": None}
-        pacparser.init()
-        try:
-            pacparser.parse_pac_string(pac_text)
-            fallback_res["proxy"] = pacparser.find_proxy(target_url, host)
-        except Exception as e:
-            return {"proxy": "ERROR", "matched_rule": "Syntax Error", "line": None, "error": str(e)}
-        finally:
-            pacparser.cleanup()
-
-        # 2. Try instrumentation to find the exact line
-        try:
-            helper = "function __trace_ret(v, l) { if (typeof v !== 'string') return v; return v + '; [[MATCH_L' + l + ']]'; }\n"
-            line_offsets = [0]
-            for m in re.finditer(r'\n', pac_text):
-                line_offsets.append(m.end())
-            
-            def get_line_num(offset):
-                return bisect.bisect_right(line_offsets, offset)
-
-            last_pos = 0
-            instrumented_parts = [helper]
-            
-            # Regex to find 'return ... ;' or 'return ...' but not inside comments. 
-            # Semicolon is optional at the end.
-            for m in re.finditer(r'\breturn\s+([^;/\n{}]+)(;?)', pac_text):
-                # Check if it's in a comment (crude check)
-                preceding_text = pac_text[last_pos:m.start()]
-                if '//' in preceding_text.splitlines()[-1] if preceding_text.splitlines() else False:
-                    instrumented_parts.append(pac_text[last_pos:m.end()])
-                    last_pos = m.end()
-                    continue
-                    
-                line_num = get_line_num(m.start())
-                val_expr = m.group(1).strip()
-                semicolon = m.group(2)
-                
-                instrumented_parts.append(pac_text[last_pos:m.start()])
-                instrumented_parts.append(f"return __trace_ret({val_expr}, {line_num}){semicolon}")
-                last_pos = m.end()
-                
-            instrumented_parts.append(pac_text[last_pos:])
-            instrumented_pac = "".join(instrumented_parts)
-            
-            pacparser.init()
-            try:
-                pacparser.parse_pac_string(instrumented_pac)
-                full_result = pacparser.find_proxy(target_url, host)
-                
-                # Extract line number marker from result (e.g., "DIRECT; [[MATCH_L45]]")
-                line_match = re.search(r'\[\[MATCH_L(\d+)\]\]', full_result)
-                
-                if line_match:
-                    line_num = int(line_match.group(1))
-                    line_idx = line_num - 1
-                    clean_result = full_result.replace(f"; [[MATCH_L{line_match.group(1)}]]", "").strip()
-                    
-                    # Create snippet from ORIGINAL pac_text
-                    lines = pac_text.splitlines()
-                    start = max(0, line_idx - 1)
-                    end = min(len(lines), line_idx + 2)
-                    snippet_lines = []
-                    for i in range(start, end):
-                        prefix = ">> " if i == line_idx else "   "
-                        snippet_lines.append(f"{prefix}L{i+1}: {lines[i].strip()}")
-                    
-                    return {
-                        "proxy": clean_result,
-                        "matched_rule": "\n".join(snippet_lines),
-                        "line": line_num
-                    }
-            finally:
-                pacparser.cleanup()
-        except:
-            # If instrumentation logic fails (e.g. regex corruption), use fallback
-            pass
-            
-        return fallback_res
-
-    @staticmethod
     def _validate_pac(pac_text: str, target_url: str, host: str) -> dict:
-        """Helper to validate PAC syntax and get proxy result."""
+        """Helper to validate PAC syntax and get proxy result using standard pacparser."""
         import socket
         resolved_ip = None
         try:
@@ -107,25 +22,27 @@ class PacService:
         except:
             pass
 
-        # Use the new instrumentation method to get exact match
-        match_info = PacService._find_matching_rule(pac_text, target_url, host)
-        
-        if match_info["proxy"] == "ERROR":
+        pacparser.init()
+        try:
+            pacparser.parse_pac_string(pac_text)
+            proxy = pacparser.find_proxy(target_url, host)
+            return {
+                "valid": True, 
+                "proxy": proxy, 
+                "matched_rule": "Tracing disabled (Standard mode)", 
+                "resolved_ip": resolved_ip,
+                "error": None
+            }
+        except Exception as e:
             return {
                 "valid": False,
                 "proxy": None,
                 "matched_rule": None,
                 "resolved_ip": resolved_ip,
-                "error": match_info.get("error", "Unknown Syntax Error")
+                "error": str(e)
             }
-
-        return {
-            "valid": True, 
-            "proxy": match_info["proxy"], 
-            "matched_rule": match_info["matched_rule"], 
-            "resolved_ip": resolved_ip,
-            "error": None
-        }
+        finally:
+            pacparser.cleanup()
 
     @staticmethod
     def _fetch_pac(url: str) -> str:

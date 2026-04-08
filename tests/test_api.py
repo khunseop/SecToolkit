@@ -84,7 +84,7 @@ def test_pac_services(mock_get):
     })
     assert response.status_code == 200
     assert response.json()["result"] == "PROXY 8.8.8.8:8080"
-    assert "L1" in response.json()["matched_rule"]
+    assert "Tracing disabled" in response.json()["matched_rule"]
     
     # Test PAC Diff
     response = client.post("/api/diff-pac", json={
@@ -118,20 +118,3 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     assert response.status_code == 200
     assert response.json()["resolved_ip"] == "8.8.8.8"
     assert "result" in response.json()
-
-def test_pac_exact_line_match():
-    # Test multiple DIRECT returns and see if it hits the right one
-    pac_text = """function FindProxyForURL(url, host) {
-        if (host == "match1") return "DIRECT";
-        if (host == "match2") return "DIRECT";
-        return "DIRECT";
-    }"""
-    from app.services.pac_service import PacService
-    
-    # match1 should hit L2
-    res = PacService._find_matching_rule(pac_text, "http://match1", "match1")
-    assert "L2" in res["matched_rule"]
-    
-    # match2 should hit L3
-    res = PacService._find_matching_rule(pac_text, "http://match2", "match2")
-    assert "L3" in res["matched_rule"]
