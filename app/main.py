@@ -38,8 +38,11 @@ class PacDiffRequest(BaseModel):
     sample_url: str
 
 # Static & Templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
+app.mount("/static", StaticFiles(directory=os.path.join(PROJECT_ROOT, "static")), name="static")
+templates = Jinja2Templates(directory=os.path.join(PROJECT_ROOT, "templates"))
 
 @app.get("/")
 async def index(request: Request):
@@ -96,4 +99,6 @@ async def diff_pac_api(request: PacDiffRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Windows에서 httptools 관련 500 에러 및 루프 문제를 방지하기 위해 http="h11" 및 loop="asyncio" 설정
+    # 또한 객체 직접 전달보다 "app.main:app" 문자열 전달이 Windows 환경에서 더 안정적임
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, http="h11", loop="asyncio")
