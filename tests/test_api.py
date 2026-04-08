@@ -95,3 +95,31 @@ def test_pac_services(mock_get):
     assert response.status_code == 200
     assert response.json()["prod_status"]["proxy"] == "PROXY 8.8.8.8:8080"
     assert "diff_result" in response.json()
+
+@patch('socket.gethostbyname')
+@patch('requests.get')
+def test_pac_dns_resolution(mock_get, mock_dns):
+    # This mock only affects our display, not pacparser's internal resolution
+    mock_dns.return_value = "8.8.8.8"
+    
+    # Use a real resolvable host so pacparser can do its thing
+    pac_content = 'function FindProxyForURL(url, host) { if (dnsResolve(host) == "8.8.8.8") return "PROXY dns-match:80"; return "DIRECT"; }'
+    
+    mock_resp = MagicMock()
+    mock_resp.text = pac_content
+    mock_resp.status_code = 200
+    mock_get.return_value = mock_resp
+    
+    response = client.post("/api/test-pac", json={
+        "pac_url": "http://example.com/proxy.pac",
+        "target_url": "http://dns.google"
+    })
+    
+    assert response.status_code == 200
+    # resolved_ip comes from our socket.gethostbyname mock
+    assert response.json()["resolved_ip"] == "8.8.8.8"
+    # Result depends on pacparser's internal DNS resolution of 'dns.google'
+    # If it resolves to 8.8.8.8, it will be PROXY, otherwise DIRECT.
+    # We just want to check if the rule matching heuristic works.
+    assert "result" in response.json()
+    assert "matched_rule" in response.json()

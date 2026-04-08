@@ -87,6 +87,8 @@
                 <button class="btn btn-primary w-100 mb-4" onclick="testPac()">Test Proxy</button>
                 <div id="pacResultBox" style="display:none;">
                     <div class="p-3 rounded bg-light border mb-3">
+                        <small class="text-muted d-block mb-1">Target Resolution (nslookup)</small>
+                        <div class="small fw-bold text-dark mb-2" id="pacResolvedIp"></div>
                         <small class="text-muted d-block mb-1">Resulting Proxy</small>
                         <div class="h5 fw-bold text-primary mb-2" id="pacResultText"></div>
                         <small class="text-muted d-block mb-1">Matched Rule (Heuristic)</small>
@@ -223,6 +225,15 @@
 
                 document.getElementById('diffResults').style.display = 'block';
                 
+                // Show resolution result if available
+                if (data.resolved_ip) {
+                    const resDiv = document.createElement('div');
+                    resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
+                    resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ${data.resolved_ip}`;
+                    const resContainer = document.getElementById('diffResults');
+                    resContainer.insertBefore(resDiv, resContainer.firstChild);
+                }
+
                 // Status Cards
                 updateStatus('prod', data.prod_status);
                 updateStatus('test', data.test_status);
@@ -370,8 +381,10 @@
             if(data.error) {
                 document.getElementById('pacResultText').innerText = "Error";
                 document.getElementById('pacMatchedRule').innerText = "-";
+                document.getElementById('pacResolvedIp').innerText = "-";
                 document.getElementById('pacPreview').value = data.error;
             } else {
+                document.getElementById('pacResolvedIp').innerText = data.resolved_ip || "Failed to resolve";
                 document.getElementById('pacResultText').innerText = data.result;
                 document.getElementById('pacMatchedRule').innerText = data.matched_rule || "N/A";
                 document.getElementById('pacPreview').value = data.pac_preview;

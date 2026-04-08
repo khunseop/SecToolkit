@@ -12,10 +12,15 @@ class PacService:
         return url
 
     @staticmethod
-    def _find_matching_rule(pac_text: str, proxy_result: str) -> str:
-        """Heuristic to find the matching rule line."""
+    def _find_matching_rule(pac_text: str, proxy_result: str, host: str, resolved_ip: str) -> str:
+        """Improved heuristic to find the matching rule line."""
         if not proxy_result or proxy_result == "DIRECT":
-            return "DIRECT (No specific rule matched or default)"
+            # Search for DIRECT specifically
+            lines = pac_text.splitlines()
+            for i, line in enumerate(lines):
+                if "DIRECT" in line and "return" in line:
+                    return f"L{i+1}: {line.strip()}"
+            return "DIRECT (Default)"
         
         # Extract the proxy part if it's like "PROXY 1.2.3.4:80"
         parts = proxy_result.split(';')
@@ -23,27 +28,54 @@ class PacService:
             part = part.strip()
             if not part: continue
             
-            # Simple heuristic: find the line containing the first proxy result
-            # We skip 'PROXY' or 'SOCKS' to search for the host/port
             search_str = part.split(' ')[-1] if ' ' in part else part
             lines = pac_text.splitlines()
+            
+            # Step 1: Look for lines that return this proxy AND have host/IP context nearby
             for i, line in enumerate(lines):
-                if search_str in line:
+                if search_str in line and "return" in line:
+                    # Check context (previous 3 lines) for host or IP matches
+                    context = "\n".join(lines[max(0, i-3):i+1])
+                    if host in context or (resolved_ip and resolved_ip in context):
+                        return f"L{i+1}: {line.strip()}"
+            
+            # Step 2: Fallback to first line that returns this proxy
+            for i, line in enumerate(lines):
+                if search_str in line and "return" in line:
                     return f"L{i+1}: {line.strip()}"
+                    
         return proxy_result
 
     @staticmethod
     def _validate_pac(pac_text: str, target_url: str, host: str) -> dict:
         """Helper to validate PAC syntax and get proxy result."""
+        import socket
+        resolved_ip = None
+        try:
+            resolved_ip = socket.gethostbyname(host)
+        except:
+            pass
+
         pacparser.init()
         try:
-            # Check syntax by attempting to parse
             pacparser.parse_pac_string(pac_text)
             proxy = pacparser.find_proxy(target_url, host)
-            matched_rule = PacService._find_matching_rule(pac_text, proxy)
-            return {"valid": True, "proxy": proxy, "matched_rule": matched_rule, "error": None}
+            matched_rule = PacService._find_matching_rule(pac_text, proxy, host, resolved_ip)
+            return {
+                "valid": True, 
+                "proxy": proxy, 
+                "matched_rule": matched_rule, 
+                "resolved_ip": resolved_ip,
+                "error": None
+            }
         except Exception as e:
-            return {"valid": False, "proxy": None, "matched_rule": None, "error": str(e)}
+            return {
+                "valid": False, 
+                "proxy": None, 
+                "matched_rule": None, 
+                "resolved_ip": resolved_ip,
+                "error": str(e)
+            }
         finally:
             pacparser.cleanup()
 
@@ -67,6 +99,7 @@ class PacService:
             return {
                 "pac_url": pac_url,
                 "target_url": target_url,
+                "resolved_ip": val["resolved_ip"],
                 "result": val["proxy"],
                 "matched_rule": val["matched_rule"],
                 "pac_preview": pac_text # Show full text now
@@ -102,6 +135,8 @@ class PacService:
             diff = list(difflib.ndiff(prod_text.splitlines(), test_text.splitlines()))
             
             return {
+                "sample_url": sample_url,
+                "resolved_ip": prod_val["resolved_ip"] or test_val["resolved_ip"],
                 "prod_status": {
                     "valid": prod_val["valid"], 
                     "proxy": prod_val["proxy"], 
@@ -114,8 +149,7 @@ class PacService:
                     "matched_rule": test_val["matched_rule"],
                     "error": test_val["error"]
                 },
-                "diff_result": diff,
-                "sample_url": sample_url
+                "diff_result": diff
             }
         except Exception as e:
             return {"error": str(e)}
