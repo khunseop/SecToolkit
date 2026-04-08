@@ -92,7 +92,7 @@
                         <small class="text-muted d-block mb-1">Resulting Proxy</small>
                         <div class="h5 fw-bold text-primary mb-2" id="pacResultText"></div>
                         <small class="text-muted d-block mb-1">Matched Rule (Heuristic)</small>
-                        <div class="small fw-bold text-dark" id="pacMatchedRule"></div>
+                        <pre class="small fw-bold text-dark border p-2 bg-white rounded mb-0" id="pacMatchedRule" style="font-family: monospace;"></pre>
                     </div>
                     <label class="small text-muted mb-2">PAC File Preview</label><textarea class="form-control small text-muted" id="pacPreview" rows="10" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
                 </div>
@@ -139,7 +139,16 @@
                         </div>
                     </div>
                     
-                    <h6 class="fw-bold mb-2">Text Content Difference</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0">Text Content Difference</h6>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="form-check form-switch small">
+                                <input class="form-check-input" type="checkbox" id="diffOnlyToggle" onchange="renderDiff()">
+                                <label class="form-check-label" for="diffOnlyToggle">Show Only Changes</label>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="copyDiff()">Copy Diff</button>
+                        </div>
+                    </div>
                     <div id="diffViewer" class="diff-container"></div>
                 </div>
             </div>
@@ -205,6 +214,8 @@
         // Initialize lists
         window.addEventListener('DOMContentLoaded', updateGroupList);
 
+        let lastDiffData = null;
+
         async function comparePac() {
             const prodUrl = document.getElementById('prodUrl').value;
             const testUrl = document.getElementById('testUrl').value;
@@ -223,37 +234,54 @@
                 const data = await response.json();
                 if(data.error) throw new Error(data.error);
 
+                lastDiffData = data;
                 document.getElementById('diffResults').style.display = 'block';
                 
                 // Show resolution result if available
+                const existingRes = document.getElementById('diffResolutionAlert');
+                if(existingRes) existingRes.remove();
+
                 if (data.resolved_ip) {
                     const resDiv = document.createElement('div');
+                    resDiv.id = 'diffResolutionAlert';
                     resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
                     resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ${data.resolved_ip}`;
                     const resContainer = document.getElementById('diffResults');
                     resContainer.insertBefore(resDiv, resContainer.firstChild);
                 }
 
-                // Status Cards
                 updateStatus('prod', data.prod_status);
                 updateStatus('test', data.test_status);
-
-                // Diff Viewer
-                const viewer = document.getElementById('diffViewer');
-                viewer.innerHTML = data.diff_result.map(line => {
-                    let cls = '';
-                    if(line.startsWith('+')) cls = 'add';
-                    else if(line.startsWith('-')) cls = 'remove';
-                    else if(line.startsWith('?')) return ''; // Skip diff pointers
-                    
-                    return `<div class="diff-line ${cls}"><span class="diff-prefix">${line[0]}</span>${line.substring(2)}</div>`;
-                }).join('');
+                renderDiff();
 
             } catch (e) {
                 alert("비교 실패: " + e.message);
             } finally {
                 document.getElementById('diffLoading').classList.add('d-none');
             }
+        }
+
+        function renderDiff() {
+            if(!lastDiffData) return;
+            const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
+            const diffLines = showOnlyChanges ? lastDiffData.changes_only : lastDiffData.diff_result;
+            
+            const viewer = document.getElementById('diffViewer');
+            viewer.innerHTML = diffLines.map(line => {
+                let cls = '';
+                if(line.startsWith('+')) cls = 'add';
+                else if(line.startsWith('-')) cls = 'remove';
+                else if(line.startsWith('?')) return ''; // Skip diff pointers
+                
+                return `<div class="diff-line ${cls}"><span class="diff-prefix">${line[0]}</span>${line.substring(2)}</div>`;
+            }).join('');
+        }
+
+        function copyDiff() {
+            if(!lastDiffData) return;
+            const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
+            const diffLines = showOnlyChanges ? lastDiffData.changes_only : lastDiffData.diff_result;
+            copyTextToClipboard(diffLines.join('\n'));
         }
 
         function updateStatus(type, status) {
@@ -265,7 +293,7 @@
                 card.className = 'p-3 rounded border h-100 border-success-subtle bg-success-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-success';
                 validText.innerText = "Syntax OK";
-                proxyText.innerHTML = `Result: ${status.proxy}<br><small class="text-muted">Rule: ${status.matched_rule || '-'}</small>`;
+                proxyText.innerHTML = `Result: ${status.proxy}<br><small class="text-muted d-block mt-2 mb-1">Matched Rule:</small><pre class="small border p-1 bg-white rounded mb-0" style="font-size: 0.75rem;">${status.matched_rule || '-'}</pre>`;
             } else {
                 card.className = 'p-3 rounded border h-100 border-danger-subtle bg-danger-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-danger';
@@ -380,13 +408,13 @@
             document.getElementById('pacResultBox').style.display = 'block';
             if(data.error) {
                 document.getElementById('pacResultText').innerText = "Error";
-                document.getElementById('pacMatchedRule').innerText = "-";
+                document.getElementById('pacMatchedRule').textContent = "-";
                 document.getElementById('pacResolvedIp').innerText = "-";
                 document.getElementById('pacPreview').value = data.error;
             } else {
                 document.getElementById('pacResolvedIp').innerText = data.resolved_ip || "Failed to resolve";
                 document.getElementById('pacResultText').innerText = data.result;
-                document.getElementById('pacMatchedRule').innerText = data.matched_rule || "N/A";
+                document.getElementById('pacMatchedRule').textContent = data.matched_rule || "N/A";
                 document.getElementById('pacPreview').value = data.pac_preview;
             }
         }

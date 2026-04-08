@@ -73,7 +73,7 @@ def test_pac_services(mock_get):
     pac_content = 'function FindProxyForURL(url, host) { if (shExpMatch(host, "*.google.com")) return "PROXY 8.8.8.8:8080"; return "DIRECT"; }'
     
     mock_resp = MagicMock()
-    mock_resp.text = pac_content
+    mock_resp.content = pac_content.encode('utf-8')
     mock_resp.status_code = 200
     mock_get.return_value = mock_resp
     
@@ -84,7 +84,7 @@ def test_pac_services(mock_get):
     })
     assert response.status_code == 200
     assert response.json()["result"] == "PROXY 8.8.8.8:8080"
-    assert "8.8.8.8:8080" in response.json()["matched_rule"]
+    assert "L1" in response.json()["matched_rule"]
     
     # Test PAC Diff
     response = client.post("/api/diff-pac", json={
@@ -106,7 +106,7 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     pac_content = 'function FindProxyForURL(url, host) { if (dnsResolve(host) == "8.8.8.8") return "PROXY dns-match:80"; return "DIRECT"; }'
     
     mock_resp = MagicMock()
-    mock_resp.text = pac_content
+    mock_resp.content = pac_content.encode('utf-8')
     mock_resp.status_code = 200
     mock_get.return_value = mock_resp
     
@@ -116,10 +116,22 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     })
     
     assert response.status_code == 200
-    # resolved_ip comes from our socket.gethostbyname mock
     assert response.json()["resolved_ip"] == "8.8.8.8"
-    # Result depends on pacparser's internal DNS resolution of 'dns.google'
-    # If it resolves to 8.8.8.8, it will be PROXY, otherwise DIRECT.
-    # We just want to check if the rule matching heuristic works.
     assert "result" in response.json()
-    assert "matched_rule" in response.json()
+
+def test_pac_exact_line_match():
+    # Test multiple DIRECT returns and see if it hits the right one
+    pac_text = """function FindProxyForURL(url, host) {
+        if (host == "match1") return "DIRECT";
+        if (host == "match2") return "DIRECT";
+        return "DIRECT";
+    }"""
+    from app.services.pac_service import PacService
+    
+    # match1 should hit L2
+    res = PacService._find_matching_rule(pac_text, "http://match1", "match1")
+    assert "L2" in res["matched_rule"]
+    
+    # match2 should hit L3
+    res = PacService._find_matching_rule(pac_text, "http://match2", "match2")
+    assert "L3" in res["matched_rule"]
