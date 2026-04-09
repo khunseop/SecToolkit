@@ -57,14 +57,64 @@ window.addEventListener('DOMContentLoaded', updateGroupList);
 
 let lastDiffData = null;
 
+async function testProdPac() {
+    const pacUrl = document.getElementById('prodUrl').value;
+    const targetUrl = document.getElementById('diffSampleUrl').value;
+    if(!pacUrl) return alert("Prod PAC URL을 입력하거나 매니저에서 선택해주세요.");
+
+    document.getElementById('diffLoading').classList.remove('d-none');
+    document.getElementById('singleTestResult').style.display = 'none';
+    document.getElementById('compareResult').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/test-pac', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ pac_url: pacUrl, target_url: targetUrl }) 
+        });
+        const data = await response.json();
+        
+        document.getElementById('singleTestResult').style.display = 'block';
+        const resBox = document.getElementById('singleResBox');
+        
+        if(data.error) {
+            resBox.innerHTML = `<div class="text-danger fw-bold">Error</div><div class="small text-muted mt-1">${data.error}</div>`;
+            document.getElementById('pacPreview').value = data.error;
+        } else {
+            resBox.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-sm-3 text-muted small">Client IP</div>
+                    <div class="col-sm-9 fw-bold small">${data.client_ip || 'Unknown'}</div>
+                    <div class="col-12 border-top my-1"></div>
+                    <div class="col-sm-3 text-muted small">Resulting Proxy</div>
+                    <div class="col-sm-9 fw-bold text-primary">${data.result}</div>
+                    <div class="col-12 border-top my-1"></div>
+                    <div class="col-sm-3 text-muted small">Resolved IPs</div>
+                    <div class="col-sm-9 d-flex flex-wrap gap-1">
+                        ${data.resolved_ips && data.resolved_ips.length > 0 
+                            ? data.resolved_ips.map(ip => `<span class="badge bg-light text-dark border font-monospace fw-normal">${ip}</span>`).join('')
+                            : '<span class="text-danger small">Failed to resolve</span>'}
+                    </div>
+                </div>`;
+            document.getElementById('pacPreview').value = data.pac_preview;
+            lastSearchPos = 0;
+        }
+    } catch (e) {
+        alert("테스트 실패: " + e.message);
+    } finally {
+        document.getElementById('diffLoading').classList.add('d-none');
+    }
+}
+
 async function comparePac() {
     const prodUrl = document.getElementById('prodUrl').value;
     const testUrl = document.getElementById('testUrl').value;
     const sampleUrl = document.getElementById('diffSampleUrl').value;
-    if(!prodUrl || !testUrl) return alert("URL을 입력해주세요.");
+    if(!prodUrl || !testUrl) return alert("Prod 및 Test PAC URL을 모두 입력해주세요.");
 
     document.getElementById('diffLoading').classList.remove('d-none');
-    document.getElementById('diffResults').style.display = 'none';
+    document.getElementById('singleTestResult').style.display = 'none';
+    document.getElementById('compareResult').style.display = 'none';
 
     try {
         const response = await fetch('/api/diff-pac', {
@@ -76,37 +126,32 @@ async function comparePac() {
         if(data.error) throw new Error(data.error);
 
         lastDiffData = data;
-        document.getElementById('diffResults').style.display = 'block';
+        document.getElementById('compareResult').style.display = 'block';
         
-        // Show resolution results
-        const existingRes = document.getElementById('diffResolutionAlert');
-        if(existingRes) existingRes.remove();
-
+        const resBox = document.getElementById('diffResolutionBox');
         if (data.resolved_ips && data.resolved_ips.length > 0) {
-            const resDiv = document.createElement('div');
-            resDiv.id = 'diffResolutionAlert';
-            resDiv.className = 'border rounded p-3 small mb-4 bg-white shadow-sm';
-            resDiv.innerHTML = `
-                <div class="row g-2">
-                    <div class="col-sm-3 text-muted">Client IP</div>
-                    <div class="col-sm-9 fw-bold">${data.client_ip || 'Unknown'}</div>
-                    <div class="col-12 border-top my-1"></div>
-                    <div class="col-sm-3 text-muted">Target URL</div>
-                    <div class="col-sm-9 font-monospace">${data.sample_url}</div>
-                    <div class="col-12 border-top my-1"></div>
-                    <div class="col-sm-3 text-muted">Resolved IPs</div>
-                    <div class="col-sm-9 d-flex flex-wrap gap-1">
-                        ${data.resolved_ips.map(ip => `<span class="badge bg-light text-dark border font-monospace fw-normal">${ip}</span>`).join('')}
+            resBox.innerHTML = `
+                <div class="border rounded p-3 small mb-4 bg-white shadow-sm">
+                    <div class="row g-2">
+                        <div class="col-sm-3 text-muted">Client IP</div>
+                        <div class="col-sm-9 fw-bold">${data.client_ip || 'Unknown'}</div>
+                        <div class="col-12 border-top my-1"></div>
+                        <div class="col-sm-3 text-muted">Target URL</div>
+                        <div class="col-sm-9 font-monospace">${data.sample_url}</div>
+                        <div class="col-12 border-top my-1"></div>
+                        <div class="col-sm-3 text-muted">Resolved IPs</div>
+                        <div class="col-sm-9 d-flex flex-wrap gap-1">
+                            ${data.resolved_ips.map(ip => `<span class="badge bg-light text-dark border font-monospace fw-normal">${ip}</span>`).join('')}
+                        </div>
                     </div>
                 </div>`;
-            const resContainer = document.getElementById('diffResults');
-            resContainer.insertBefore(resDiv, resContainer.firstChild);
+        } else {
+            resBox.innerHTML = '';
         }
 
         updateStatus('prod', data.prod_status);
         updateStatus('test', data.test_status);
         
-        // Render Summary
         const summary = {
             added: data.diff_result.filter(l => l.startsWith('+')).length,
             removed: data.diff_result.filter(l => l.startsWith('-')).length,
@@ -341,35 +386,6 @@ function searchInPac(event) {
         lastSearchPos = pos;
     } else {
         alert("검색 결과가 없습니다.");
-        lastSearchPos = 0;
-    }
-}
-
-async function testPac() {
-    const pacUrl = document.getElementById('pacUrl').value;
-    const targetUrl = document.getElementById('targetUrl').value;
-    if(!pacUrl || !targetUrl) return;
-    const response = await fetch('/api/test-pac', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pac_url: pacUrl, target_url: targetUrl }) });
-    const data = await response.json();
-    document.getElementById('pacResultBox').style.display = 'block';
-    if(data.error) {
-        document.getElementById('pacResultText').innerText = "Error";
-        document.getElementById('pacResolvedIp').innerHTML = "-";
-        document.getElementById('pacMyIp').innerText = "-";
-        document.getElementById('pacPreview').value = data.error;
-    } else {
-        const ipContainer = document.getElementById('pacResolvedIp');
-        if (data.resolved_ips && data.resolved_ips.length > 0) {
-            ipContainer.innerHTML = data.resolved_ips.map(ip => 
-                `<span class="badge bg-white text-dark border font-monospace" style="font-weight:500">${ip}</span>`
-            ).join('');
-        } else {
-            ipContainer.innerHTML = '<span class="text-danger small">Failed to resolve</span>';
-        }
-        
-        document.getElementById('pacMyIp').innerText = data.client_ip || "Unknown";
-        document.getElementById('pacResultText').innerText = data.result;
-        document.getElementById('pacPreview').value = data.pac_preview;
         lastSearchPos = 0;
     }
 }
