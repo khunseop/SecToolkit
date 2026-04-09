@@ -156,6 +156,7 @@ h4 {
 .accordion-button:focus { box-shadow: none; border-color: rgba(0,0,0,0.125); }
 .pac-group-item { cursor: pointer; transition: all 0.2s; border: 1px solid #dee2e6 !important; background: #fff !important; padding: 0.4rem 0.7rem !important; }
 .pac-group-item:hover { border-color: var(--primary-color) !important; background: rgba(13, 110, 253, 0.02) !important; }
+.pac-group-item.active { border-color: var(--primary-color) !important; background-color: var(--primary-color) !important; color: #fff !important; }
 .pac-group-item .btn-close-sm { font-size: 0.6rem; margin-left: 0.5rem; color: #dc3545; }
 
 @media (max-width: 768px) { 

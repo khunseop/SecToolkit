@@ -1,17 +1,21 @@
 // Server Management
 let pacGroups = JSON.parse(localStorage.getItem('pacGroups') || '[]');
+let selectedPacGroupIdx = null;
 
 function updateGroupList() {
     const list = document.getElementById('pacGroupList');
     const quickList = document.getElementById('pacQuickList');
     if (!list || !quickList) return;
 
-    const renderItem = (g, i, isManagement) => `
-        <div class="badge pac-group-item text-dark d-flex align-items-center gap-2 shadow-sm" onclick="selectPacGroup(${i})">
-            <span>${g.name}</span>
-            ${isManagement ? `<span class="text-danger fw-bold ms-1" onclick="event.stopPropagation(); deletePacGroup(${i})">&times;</span>` : ''}
-        </div>
-    `;
+    const renderItem = (g, i, isManagement) => {
+        const isActive = selectedPacGroupIdx === i;
+        return `
+            <div class="badge pac-group-item text-dark d-flex align-items-center gap-2 shadow-sm ${isActive ? 'active' : ''}" onclick="selectPacGroup(${i})">
+                <span>${g.name}</span>
+                ${isManagement ? `<span class="text-danger fw-bold ms-1" onclick="event.stopPropagation(); deletePacGroup(${i})">&times;</span>` : ''}
+            </div>
+        `;
+    };
 
     list.innerHTML = pacGroups.map((g, i) => renderItem(g, i, true)).join('');
     quickList.innerHTML = pacGroups.map((g, i) => renderItem(g, i, false)).join('');
@@ -32,11 +36,16 @@ function savePacGroup() {
 }
 
 function selectPacGroup(i) {
+    selectedPacGroupIdx = i;
     document.getElementById('prodUrl').value = pacGroups[i].prod;
     document.getElementById('testUrl').value = pacGroups[i].test;
+    updateGroupList();
 }
 
 function deletePacGroup(i) {
+    if (selectedPacGroupIdx === i) selectedPacGroupIdx = null;
+    else if (selectedPacGroupIdx > i) selectedPacGroupIdx--;
+    
     pacGroups.splice(i, 1);
     localStorage.setItem('pacGroups', JSON.stringify(pacGroups));
     updateGroupList();
