@@ -93,15 +93,61 @@ async function comparePac() {
 
         updateStatus('prod', data.prod_status);
         updateStatus('test', data.test_status);
+
+        // Render Summary
+        const summary = {
+            added: data.diff_result.filter(l => l.startsWith('+')).length,
+            removed: data.diff_result.filter(l => l.startsWith('-')).length,
+            total: data.diff_result.length
+        };
+        const summaryDiv = document.getElementById('diffSummary');
+        summaryDiv.style.display = 'block';
+        summaryDiv.innerHTML = `
+            <div class="row text-center">
+                <div class="col-4 border-end"><div class="text-muted small">Added</div><div class="h5 mb-0 text-success fw-bold">${summary.added}</div></div>
+                <div class="col-4 border-end"><div class="text-muted small">Removed</div><div class="h5 mb-0 text-danger fw-bold">${summary.removed}</div></div>
+                <div class="col-4"><div class="text-muted small">Diff Lines</div><div class="h5 mb-0 text-primary fw-bold">${data.changes_only.length}</div></div>
+            </div>
+        `;
+
         renderDiff();
 
-    } catch (e) {
+        } catch (e) {
         alert("비교 실패: " + e.message);
-    } finally {
+        } finally {
         document.getElementById('diffLoading').classList.add('d-none');
-    }
-}
+        }
+        }
 
+        function copyFullReport() {
+        if(!lastDiffData) return;
+        const data = lastDiffData;
+        const added = data.diff_result.filter(l => l.startsWith('+')).length;
+        const removed = data.diff_result.filter(l => l.startsWith('-')).length;
+
+        let report = `[PAC Comparison Report]\n`;
+        report += `Sample URL: ${data.sample_url}\n`;
+        report += `Resolved IPs: ${data.resolved_ips.join(', ')}\n\n`;
+
+        report += `[Validation Results]\n`;
+        report += `- Production: ${data.prod_status.valid ? 'OK' : 'Error'} (${data.prod_status.proxy})\n`;
+        report += `- Test (Proposed): ${data.test_status.valid ? 'OK' : 'Error'} (${data.test_status.proxy})\n`;
+        report += `- Matching Result: ${data.prod_status.proxy === data.test_status.proxy ? 'SAME' : 'CHANGED'}\n\n`;
+
+        report += `[Content Diff Summary]\n`;
+        report += `- Lines Added: ${added}\n`;
+        report += `- Lines Removed: ${removed}\n`;
+        report += `- Total Changes: ${data.changes_only.length} lines\n\n`;
+
+        report += `[Changes List]\n`;
+        if (data.changes_only.length > 0) {
+        report += data.changes_only.join('\n');
+        } else {
+        report += "No changes detected.";
+        }
+
+        copyTextToClipboard(report);
+        }
 function renderDiff() {
     if(!lastDiffData) return;
     const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
