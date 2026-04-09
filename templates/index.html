@@ -69,16 +69,34 @@
 
         <!-- PAC Diff -->
         <div id="view-pacdiff" class="content-section">
-            <!-- Server Manager -->
-            <div class="tool-card">
-                <h4 class="fw-bold">PAC Server Manager</h4>
-                <div class="row g-2 mb-3">
-                    <div class="col-md-3"><input type="text" class="form-control form-control-sm" id="groupName" placeholder="그룹명 (예: 사내운영)"></div>
-                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" id="prodUrl" placeholder="운영 PAC URL"></div>
-                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" id="testUrl" placeholder="테스트 PAC URL"></div>
-                    <div class="col-md-1"><button class="btn btn-success btn-sm w-100" onclick="savePacGroup()">저장</button></div>
+            <!-- Server Manager (Accordion) -->
+            <div class="tool-card p-0 overflow-hidden mb-3">
+                <!-- Quick Selection (Visible when collapsed) -->
+                <div id="pacQuickSelect" class="bg-white px-4 py-2 border-bottom d-flex align-items-center gap-2 overflow-auto" style="min-height: 45px;">
+                    <small class="text-muted flex-shrink-0">Quick Load:</small>
+                    <div id="pacQuickList" class="d-flex gap-2"></div>
                 </div>
-                <div id="pacGroupList" class="d-flex flex-wrap gap-2"></div>
+                
+                <div class="accordion accordion-flush" id="pacManagerAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManager">
+                                PAC Server Manager
+                            </button>
+                        </h2>
+                        <div id="collapseManager" class="accordion-collapse collapse" data-bs-parent="#pacManagerAccordion">
+                            <div class="accordion-body p-4 bg-light">
+                                <div class="row g-2 align-items-end mb-3">
+                                    <div class="col-md-3"><label class="small text-muted mb-1">Group Name</label><input type="text" class="form-control form-control-sm" id="groupName" placeholder="e.g. Production"></div>
+                                    <div class="col-md-4"><label class="small text-muted mb-1">Prod PAC URL</label><input type="text" class="form-control form-control-sm" id="prodUrl" placeholder="http://..."></div>
+                                    <div class="col-md-4"><label class="small text-muted mb-1">Test PAC URL</label><input type="text" class="form-control form-control-sm" id="testUrl" placeholder="http://..."></div>
+                                    <div class="col-md-1"><button class="btn btn-success btn-sm w-100 py-2" onclick="savePacGroup()">Save</button></div>
+                                </div>
+                                <div id="pacGroupList" class="d-flex flex-wrap gap-2 pt-2 border-top"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Diff Controls -->

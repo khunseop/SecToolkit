@@ -3,13 +3,21 @@ let pacGroups = JSON.parse(localStorage.getItem('pacGroups') || '[]');
 
 function updateGroupList() {
     const list = document.getElementById('pacGroupList');
-    if (!list) return;
-    list.innerHTML = pacGroups.map((g, i) => `
-        <div class="badge bg-white text-dark border p-2 d-flex align-items-center gap-2">
-            <span style="cursor:pointer" onclick="selectPacGroup(${i})">${g.name}</span>
-            <span class="text-danger" style="cursor:pointer" onclick="deletePacGroup(${i})">&times;</span>
+    const quickList = document.getElementById('pacQuickList');
+    if (!list || !quickList) return;
+
+    const renderItem = (g, i, isManagement) => `
+        <div class="badge pac-group-item text-dark d-flex align-items-center gap-2 shadow-sm" onclick="selectPacGroup(${i})">
+            <span>${g.name}</span>
+            ${isManagement ? `<span class="text-danger fw-bold ms-1" onclick="event.stopPropagation(); deletePacGroup(${i})">&times;</span>` : ''}
         </div>
-    `).join('');
+    `;
+
+    list.innerHTML = pacGroups.map((g, i) => renderItem(g, i, true)).join('');
+    quickList.innerHTML = pacGroups.map((g, i) => renderItem(g, i, false)).join('');
+    
+    // Hide quick load if empty
+    document.getElementById('pacQuickSelect').style.display = pacGroups.length > 0 ? 'flex' : 'none';
 }
 
 function savePacGroup() {
