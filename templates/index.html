@@ -88,11 +88,19 @@
                 <div id="pacResultBox" style="display:none;">
                     <div class="p-3 rounded bg-light border mb-3">
                         <small class="text-muted d-block mb-1">Target Resolution (nslookup)</small>
-                        <div class="small fw-bold text-dark mb-2" id="pacResolvedIp"></div>
+                        <div class="d-flex flex-wrap gap-1 mb-2" id="pacResolvedIp"></div>
                         <small class="text-muted d-block mb-1">Resulting Proxy</small>
-                        <div class="h5 fw-bold text-primary mb-2" id="pacResultText"></div>
+                        <div class="h5 fw-bold text-primary mb-0" id="pacResultText"></div>
                     </div>
-                    <label class="small text-muted mb-2">PAC File Preview</label><textarea class="form-control small text-muted" id="pacPreview" rows="10" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="small text-muted mb-0">PAC File Preview</label>
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <input type="text" class="form-control" id="pacSearchInput" placeholder="Find in PAC..." onkeyup="searchInPac(event)">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchInPac()">Next</button>
+                        </div>
+                    </div>
+                    <textarea class="form-control small text-muted" id="pacPreview" rows="10" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
                 </div>
             </div>
         </div>
@@ -235,15 +243,16 @@
                 lastDiffData = data;
                 document.getElementById('diffResults').style.display = 'block';
                 
-                // Show resolution result if available
+                // Show resolution results
                 const existingRes = document.getElementById('diffResolutionAlert');
                 if(existingRes) existingRes.remove();
 
-                if (data.resolved_ip) {
+                if (data.resolved_ips && data.resolved_ips.length > 0) {
                     const resDiv = document.createElement('div');
                     resDiv.id = 'diffResolutionAlert';
                     resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
-                    resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ${data.resolved_ip}`;
+                    resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ` + 
+                        data.resolved_ips.map(ip => `<span class="badge bg-white text-dark border ms-1">${ip}</span>`).join('');
                     const resContainer = document.getElementById('diffResults');
                     resContainer.insertBefore(resDiv, resContainer.firstChild);
                 }
@@ -397,6 +406,36 @@
             }
         }
 
+        let lastSearchPos = 0;
+        function searchInPac(event) {
+            if (event && event.key !== 'Enter') return;
+            
+            const textarea = document.getElementById('pacPreview');
+            const query = document.getElementById('pacSearchInput').value.toLowerCase();
+            if (!query) return;
+
+            const text = textarea.value.toLowerCase();
+            let pos = text.indexOf(query, lastSearchPos + 1);
+            
+            if (pos === -1) {
+                pos = text.indexOf(query); // Wrap around
+            }
+
+            if (pos !== -1) {
+                textarea.focus();
+                textarea.setSelectionRange(pos, pos + query.length);
+                
+                // Scroll to position (heuristic)
+                const lineNum = text.substr(0, pos).split('\n').length;
+                textarea.scrollTop = (lineNum - 3) * 18; 
+                
+                lastSearchPos = pos;
+            } else {
+                alert("검색 결과가 없습니다.");
+                lastSearchPos = 0;
+            }
+        }
+
         async function testPac() {
             const pacUrl = document.getElementById('pacUrl').value;
             const targetUrl = document.getElementById('targetUrl').value;
@@ -406,12 +445,21 @@
             document.getElementById('pacResultBox').style.display = 'block';
             if(data.error) {
                 document.getElementById('pacResultText').innerText = "Error";
-                document.getElementById('pacResolvedIp').innerText = "-";
+                document.getElementById('pacResolvedIp').innerHTML = "-";
                 document.getElementById('pacPreview').value = data.error;
             } else {
-                document.getElementById('pacResolvedIp').innerText = data.resolved_ip || "Failed to resolve";
+                const ipContainer = document.getElementById('pacResolvedIp');
+                if (data.resolved_ips && data.resolved_ips.length > 0) {
+                    ipContainer.innerHTML = data.resolved_ips.map(ip => 
+                        `<span class="badge bg-white text-dark border font-monospace" style="font-weight:500">${ip}</span>`
+                    ).join('');
+                } else {
+                    ipContainer.innerHTML = '<span class="text-danger small">Failed to resolve</span>';
+                }
+                
                 document.getElementById('pacResultText').innerText = data.result;
                 document.getElementById('pacPreview').value = data.pac_preview;
+                lastSearchPos = 0;
             }
         }
 

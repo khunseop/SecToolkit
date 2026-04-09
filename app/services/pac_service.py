@@ -16,9 +16,11 @@ class PacService:
     def _validate_pac(pac_text: str, target_url: str, host: str) -> dict:
         """Helper to validate PAC syntax and get proxy result using standard pacparser."""
         import socket
-        resolved_ip = None
+        resolved_ips = []
         try:
-            resolved_ip = socket.gethostbyname(host)
+            # Fetch all associated IP addresses (IPv4 & IPv6)
+            addr_info = socket.getaddrinfo(host, None)
+            resolved_ips = list(set([info[4][0] for info in addr_info]))
         except:
             pass
 
@@ -29,20 +31,18 @@ class PacService:
             return {
                 "valid": True, 
                 "proxy": proxy, 
-                "resolved_ip": resolved_ip,
+                "resolved_ips": resolved_ips,
                 "error": None
             }
         except Exception as e:
             return {
                 "valid": False,
                 "proxy": None,
-                "matched_rule": None,
-                "resolved_ip": resolved_ip,
+                "resolved_ips": resolved_ips,
                 "error": str(e)
             }
         finally:
             pacparser.cleanup()
-
     @staticmethod
     def _fetch_pac(url: str) -> str:
         """Fetch PAC with encoding fallback (UTF-8 -> EUC-KR)."""
@@ -77,7 +77,7 @@ class PacService:
             return {
                 "pac_url": pac_url,
                 "target_url": target_url,
-                "resolved_ip": val["resolved_ip"],
+                "resolved_ips": val["resolved_ips"],
                 "result": val["proxy"],
                 "pac_preview": pac_text
             }
@@ -109,7 +109,7 @@ class PacService:
             
             return {
                 "sample_url": sample_url,
-                "resolved_ip": prod_val["resolved_ip"] or test_val["resolved_ip"],
+                "resolved_ips": list(set(prod_val["resolved_ips"] + test_val["resolved_ips"])),
                 "prod_status": {
                     "valid": prod_val["valid"], 
                     "proxy": prod_val["proxy"], 

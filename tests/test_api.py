@@ -95,11 +95,11 @@ def test_pac_services(mock_get):
     assert response.json()["prod_status"]["proxy"] == "PROXY 8.8.8.8:8080"
     assert "diff_result" in response.json()
 
-@patch('socket.gethostbyname')
+@patch('socket.getaddrinfo')
 @patch('requests.get')
 def test_pac_dns_resolution(mock_get, mock_dns):
-    # This mock only affects our display, not pacparser's internal resolution
-    mock_dns.return_value = "8.8.8.8"
+    # Mock getaddrinfo to return a list of addresses
+    mock_dns.return_value = [(2, 1, 6, '', ('8.8.8.8', 0))]
     
     # Use a real resolvable host so pacparser can do its thing
     pac_content = 'function FindProxyForURL(url, host) { if (dnsResolve(host) == "8.8.8.8") return "PROXY dns-match:80"; return "DIRECT"; }'
@@ -115,5 +115,5 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     })
     
     assert response.status_code == 200
-    assert response.json()["resolved_ip"] == "8.8.8.8"
+    assert "8.8.8.8" in response.json()["resolved_ips"]
     assert "result" in response.json()
