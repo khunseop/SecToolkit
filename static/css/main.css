@@ -1,0 +1,159 @@
+:root {
+    --primary-color: #0d6efd;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-main: #212529;
+    --text-muted: #6c757d;
+    --sub-nav-bg: #f1f3f5;
+    --diff-add: #e6ffec;
+    --diff-remove: #ffebe9;
+}
+
+body { 
+    background-color: var(--bg-color); 
+    color: var(--text-main); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    margin: 0; 
+    padding-bottom: 30px; 
+}
+
+.header-nav { 
+    background-color: var(--card-bg); 
+    border-bottom: 1px solid #dee2e6; 
+    padding: 0.4rem 0; 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+}
+
+.header-container { 
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: center; 
+    gap: 2rem; 
+}
+
+.brand-name { 
+    font-weight: 800; 
+    font-size: 1.1rem; 
+    margin: 0; 
+    color: var(--text-main); 
+    white-space: nowrap; 
+}
+
+.main-nav .nav-link { 
+    color: var(--text-muted); 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    text-transform: uppercase; 
+    padding: 0.3rem 0.7rem; 
+    cursor: pointer; 
+    border-bottom: none !important; 
+    border-radius: 6px; 
+    transition: all 0.2s; 
+}
+
+.main-nav .nav-link.active { 
+    color: var(--primary-color) !important; 
+    background-color: rgba(13, 110, 253, 0.08); 
+}
+
+.sub-nav-container { 
+    background-color: var(--sub-nav-bg); 
+    padding: 0.3rem 0; 
+    border-bottom: 1px solid #e9ecef; 
+}
+
+.sub-nav { 
+    justify-content: flex-start !important; 
+}
+
+.sub-nav .nav-link { 
+    color: var(--text-muted); 
+    font-size: 0.8rem; 
+    font-weight: 500; 
+    padding: 0.2rem 0.6rem; 
+    margin-right: 0.3rem; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    white-space: nowrap; 
+    border-bottom: none !important; 
+}
+
+.sub-nav .nav-link.active { 
+    background-color: var(--card-bg); 
+    color: var(--primary-color) !important; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+}
+
+.main-container { 
+    max-width: 900px; 
+    margin: 1.5rem auto; 
+    padding: 0 1rem; 
+}
+
+.tool-card { 
+    background: var(--card-bg); 
+    border: 1px solid #e9ecef; 
+    border-radius: 12px; 
+    padding: 1.5rem; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
+    margin-bottom: 1rem; 
+}
+
+.content-section { 
+    display: none; 
+}
+
+.content-section.active { 
+    display: block; 
+    animation: fadeIn 0.15s ease-out; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(3px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.form-control, .form-select { 
+    border: 1px solid #dee2e6; 
+    border-radius: 8px; 
+    padding: 0.6rem 0.8rem; 
+    font-size: 0.9rem; 
+}
+
+h4 { 
+    font-size: 1.1rem; 
+    margin-bottom: 1.25rem; 
+    font-weight: 700; 
+}
+
+/* Diff Styles */
+.diff-container { 
+    font-family: monospace; 
+    font-size: 0.85rem; 
+    background: #fff; 
+    border: 1px solid #eee; 
+    border-radius: 8px; 
+    overflow: hidden; 
+}
+
+.diff-line { 
+    display: flex; 
+    padding: 0.1rem 0.5rem; 
+    white-space: pre-wrap; 
+    word-break: break-all; 
+    border-bottom: 1px solid #f9f9f9; 
+}
+
+.diff-line.add { background-color: var(--diff-add); }
+.diff-line.remove { background-color: var(--diff-remove); }
+.diff-line.header { background-color: #f6f8fa; font-weight: bold; color: #57606a; }
+.diff-prefix { width: 20px; flex-shrink: 0; color: #999; }
+
+@media (max-width: 768px) { 
+    .header-container { gap: 1rem; } 
+    .brand-name { font-size: 1rem; } 
+    .sub-nav { overflow-x: auto; flex-wrap: nowrap; } 
+    .main-container { margin: 1rem auto; } 
+}

@@ -5,46 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SecToolkit | Security Utility</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #0d6efd;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #212529;
-            --text-muted: #6c757d;
-            --sub-nav-bg: #f1f3f5;
-            --diff-add: #e6ffec;
-            --diff-remove: #ffebe9;
-        }
-
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding-bottom: 30px; }
-        .header-nav { background-color: var(--card-bg); border-bottom: 1px solid #dee2e6; padding: 0.4rem 0; position: sticky; top: 0; z-index: 1000; }
-        .header-container { display: flex; justify-content: flex-start; align-items: center; gap: 2rem; }
-        .brand-name { font-weight: 800; font-size: 1.1rem; margin: 0; color: var(--text-main); white-space: nowrap; }
-        .main-nav .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; padding: 0.3rem 0.7rem; cursor: pointer; border-bottom: none !important; border-radius: 6px; transition: all 0.2s; }
-        .main-nav .nav-link.active { color: var(--primary-color) !important; background-color: rgba(13, 110, 253, 0.08); }
-        .sub-nav-container { background-color: var(--sub-nav-bg); padding: 0.3rem 0; border-bottom: 1px solid #e9ecef; }
-        .sub-nav { justify-content: flex-start !important; }
-        .sub-nav .nav-link { color: var(--text-muted); font-size: 0.8rem; font-weight: 500; padding: 0.2rem 0.6rem; margin-right: 0.3rem; border-radius: 6px; cursor: pointer; white-space: nowrap; border-bottom: none !important; }
-        .sub-nav .nav-link.active { background-color: var(--card-bg); color: var(--primary-color) !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .main-container { max-width: 900px; margin: 1.5rem auto; padding: 0 1rem; }
-        .tool-card { background: var(--card-bg); border: 1px solid #e9ecef; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 1rem; }
-        .content-section { display: none; }
-        .content-section.active { display: block; animation: fadeIn 0.15s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-        .form-control, .form-select { border: 1px solid #dee2e6; border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.9rem; }
-        h4 { font-size: 1.1rem; margin-bottom: 1.25rem; font-weight: 700; }
-        
-        /* Diff Styles */
-        .diff-container { font-family: monospace; font-size: 0.85rem; background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
-        .diff-line { display: flex; padding: 0.1rem 0.5rem; white-space: pre-wrap; word-break: break-all; border-bottom: 1px solid #f9f9f9; }
-        .diff-line.add { background-color: var(--diff-add); }
-        .diff-line.remove { background-color: var(--diff-remove); }
-        .diff-line.header { background-color: #f6f8fa; font-weight: bold; color: #57606a; }
-        .diff-prefix { width: 20px; flex-shrink: 0; color: #999; }
-
-        @media (max-width: 768px) { .header-container { gap: 1rem; } .brand-name { font-size: 1rem; } .sub-nav { overflow-x: auto; flex-wrap: nowrap; } .main-container { margin: 1rem auto; } }
-    </style>
+    <link href="/static/css/main.css" rel="stylesheet">
 </head>
 <body>
     <header class="header-nav">
@@ -78,13 +39,14 @@
     </div>
 
     <div class="main-container">
-        <!-- PAC Tester (Existing) -->
+        <!-- PAC Tester -->
         <div id="view-pactester" class="content-section">
             <div class="tool-card">
                 <h4 class="fw-bold">PAC Tester</h4>
                 <div class="mb-3"><label class="small text-muted mb-2">PAC Server URL</label><input type="text" class="form-control" id="pacUrl" placeholder="http://example.com/proxy.pac"></div>
                 <div class="mb-4"><label class="small text-muted mb-2">Target URL</label><input type="text" class="form-control" id="targetUrl" value="https://www.google.com"></div>
                 <button class="btn btn-primary w-100 mb-4" onclick="testPac()">Test Proxy</button>
+                
                 <div id="pacResultBox" style="display:none;">
                     <div class="p-3 rounded bg-light border mb-3">
                         <small class="text-muted d-block mb-1">Target Resolution (nslookup)</small>
@@ -105,7 +67,7 @@
             </div>
         </div>
 
-        <!-- PAC Diff (New) -->
+        <!-- PAC Diff -->
         <div id="view-pacdiff" class="content-section">
             <!-- Server Manager -->
             <div class="tool-card">
@@ -160,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Existing Tools Placeholder -->
+        <!-- URL Tool -->
         <div id="view-url" class="content-section active">
             <div class="tool-card">
                 <h4 class="fw-bold">URL Encoder / Decoder</h4>
@@ -173,305 +135,121 @@
                 <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('urlOutput')">결과 복사</button>
             </div>
         </div>
-        <div id="view-base64" class="content-section"><div class="tool-card"><h4 class="fw-bold">Base64 Encoder / Decoder</h4><textarea class="form-control mb-3" id="base64Input" rows="5"></textarea><div class="row g-2 mb-3"><div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'encode')">Encode</button></div><div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'decode')">Decode</button></div></div><textarea class="form-control mb-3" id="base64Output" rows="5" readonly></textarea><button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('base64Output')">결과 복사</button></div></div>
-        <div id="view-counter" class="content-section"><div class="tool-card"><h4 class="fw-bold">Text Counter</h4><textarea class="form-control mb-3" id="counterInput" rows="6"></textarea><div class="mb-4"><select class="form-select form-select-sm" id="encodingSelect"><option value="utf-8">UTF-8</option><option value="euc-kr">EUC-KR</option></select></div><div class="row g-3 mb-3"><div class="col-6"><div class="p-2 rounded bg-light border text-center"><small class="text-muted d-block">Bytes</small><span class="h4 fw-bold text-primary" id="byteResult">0</span></div></div><div class="col-6"><div class="p-2 rounded bg-light border text-center"><small class="text-muted d-block">Characters</small><span class="h4 fw-bold" id="charCountResult">0</span></div></div></div><div class="p-3 rounded bg-light border"><div class="d-flex justify-content-between align-items-center mb-2"><small class="text-muted fw-bold">Analysis Details</small><button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copyAnalysisReport()">결과 복사</button></div><div id="detailResult" class="d-flex flex-wrap gap-2"></div></div></div></div>
-        <div id="view-converter" class="content-section"><div class="tool-card"><h4 class="fw-bold">Unit Converter</h4><div class="mb-4"><label class="small text-muted mb-2">Category</label><select class="form-select" id="unitCategory" onchange="loadUnits()"><option value="data">Data Size</option><option value="speed">Transfer Speed</option><option value="time">Time</option></select></div><div class="converter-box p-4 rounded bg-light border mb-3"><div class="converter-side"><input type="number" class="form-control form-control-lg text-center mb-2" id="leftVal" value="1" oninput="doConvert('left')"><select class="form-select form-select-sm" id="leftUnit" onchange="doConvert('left')"></select></div><div class="converter-divider text-muted h4 mb-0 text-center">⇄</div><div class="converter-side"><input type="number" class="form-control form-control-lg text-center mb-2" id="rightVal" oninput="doConvert('right')"><select class="form-select form-select-sm" id="rightUnit" onchange="doConvert('left')"></select></div></div><div id="unitFormula" class="text-center small text-muted font-monospace"></div></div></div>
-        <div id="view-beautifier" class="content-section"><div class="tool-card"><h4 class="fw-bold">JSON Beautifier</h4><textarea class="form-control mb-3" id="jsonInput" rows="6"></textarea><button class="btn btn-primary btn-sm w-100 mb-3" onclick="beautifyJson()">Format JSON</button><textarea class="form-control mb-3" id="jsonOutput" rows="8" readonly></textarea><button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('jsonOutput')">결과 복사</button></div></div>
-        <div id="view-har" class="content-section"><div class="tool-card"><h4 class="fw-bold">HAR Header Extractor</h4><div class="input-group mb-3"><input type="file" class="form-control form-control-sm" id="harFile" accept=".har"><button class="btn btn-primary btn-sm" onclick="uploadHar()">Extract</button></div><div class="table-responsive" id="harTableContainer" style="display:none;"><table class="table table-sm small"><thead><tr><th>Method</th><th>URL</th><th>Auth</th></tr></thead><tbody id="harResults"></tbody></table></div></div></div>
+
+        <!-- Base64 Tool -->
+        <div id="view-base64" class="content-section">
+            <div class="tool-card">
+                <h4 class="fw-bold">Base64 Encoder / Decoder</h4>
+                <textarea class="form-control mb-3" id="base64Input" rows="5"></textarea>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'encode')">Encode</button></div>
+                    <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'decode')">Decode</button></div>
+                </div>
+                <textarea class="form-control mb-3" id="base64Output" rows="5" readonly></textarea>
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('base64Output')">결과 복사</button>
+            </div>
+        </div>
+
+        <!-- Text Counter -->
+        <div id="view-counter" class="content-section">
+            <div class="tool-card">
+                <h4 class="fw-bold">Text Counter</h4>
+                <textarea class="form-control mb-3" id="counterInput" rows="6"></textarea>
+                <div class="mb-4">
+                    <select class="form-select form-select-sm" id="encodingSelect">
+                        <option value="utf-8">UTF-8</option>
+                        <option value="euc-kr">EUC-KR</option>
+                    </select>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div class="p-2 rounded bg-light border text-center">
+                            <small class="text-muted d-block">Bytes</small>
+                            <span class="h4 fw-bold text-primary" id="byteResult">0</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded bg-light border text-center">
+                            <small class="text-muted d-block">Characters</small>
+                            <span class="h4 fw-bold" id="charCountResult">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 rounded bg-light border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted fw-bold">Analysis Details</small>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copyAnalysisReport()">결과 복사</button>
+                    </div>
+                    <div id="detailResult" class="d-flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit Converter -->
+        <div id="view-converter" class="content-section">
+            <div class="tool-card">
+                <h4 class="fw-bold">Unit Converter</h4>
+                <div class="mb-4">
+                    <label class="small text-muted mb-2">Category</label>
+                    <select class="form-select" id="unitCategory" onchange="loadUnits()">
+                        <option value="data">Data Size</option>
+                        <option value="speed">Transfer Speed</option>
+                        <option value="time">Time</option>
+                    </select>
+                </div>
+                <div class="p-4 rounded bg-light border mb-3 text-center">
+                    <div class="row align-items-center g-3">
+                        <div class="col">
+                            <input type="number" class="form-control form-control-lg text-center mb-2" id="leftVal" value="1" oninput="doConvert('left')">
+                            <select class="form-select form-select-sm" id="leftUnit" onchange="doConvert('left')"></select>
+                        </div>
+                        <div class="col-auto text-muted h4 mb-0">⇄</div>
+                        <div class="col">
+                            <input type="number" class="form-control form-control-lg text-center mb-2" id="rightVal" oninput="doConvert('right')">
+                            <select class="form-select form-select-sm" id="rightUnit" onchange="doConvert('left')"></select>
+                        </div>
+                    </div>
+                </div>
+                <div id="unitFormula" class="text-center small text-muted font-monospace"></div>
+            </div>
+        </div>
+
+        <!-- JSON Beautifier -->
+        <div id="view-beautifier" class="content-section">
+            <div class="tool-card">
+                <h4 class="fw-bold">JSON Beautifier</h4>
+                <textarea class="form-control mb-3" id="jsonInput" rows="6"></textarea>
+                <button class="btn btn-primary btn-sm w-100 mb-3" onclick="beautifyJson()">Format JSON</button>
+                <textarea class="form-control mb-3" id="jsonOutput" rows="8" readonly></textarea>
+                <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('jsonOutput')">결과 복사</button>
+            </div>
+        </div>
+
+        <!-- HAR Extractor -->
+        <div id="view-har" class="content-section">
+            <div class="tool-card">
+                <h4 class="fw-bold">HAR Header Extractor</h4>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control form-control-sm" id="harFile" accept=".har">
+                    <button class="btn btn-primary btn-sm" onclick="uploadHar()">Extract</button>
+                </div>
+                <div class="table-responsive" id="harTableContainer" style="display:none;">
+                    <table class="table table-sm small">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>URL</th>
+                                <th>Auth</th>
+                            </tr>
+                        </thead>
+                        <tbody id="harResults"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Server Management
-        let pacGroups = JSON.parse(localStorage.getItem('pacGroups') || '[]');
-        
-        function updateGroupList() {
-            const list = document.getElementById('pacGroupList');
-            list.innerHTML = pacGroups.map((g, i) => `
-                <div class="badge bg-white text-dark border p-2 d-flex align-items-center gap-2">
-                    <span style="cursor:pointer" onclick="selectPacGroup(${i})">${g.name}</span>
-                    <span class="text-danger" style="cursor:pointer" onclick="deletePacGroup(${i})">&times;</span>
-                </div>
-            `).join('');
-        }
-
-        function savePacGroup() {
-            const name = document.getElementById('groupName').value;
-            const prod = document.getElementById('prodUrl').value;
-            const test = document.getElementById('testUrl').value;
-            if(!name || !prod || !test) return alert("모든 필드를 입력해주세요.");
-            pacGroups.push({ name, prod, test });
-            localStorage.setItem('pacGroups', JSON.stringify(pacGroups));
-            updateGroupList();
-            document.getElementById('groupName').value = '';
-        }
-
-        function selectPacGroup(i) {
-            document.getElementById('prodUrl').value = pacGroups[i].prod;
-            document.getElementById('testUrl').value = pacGroups[i].test;
-        }
-
-        function deletePacGroup(i) {
-            pacGroups.splice(i, 1);
-            localStorage.setItem('pacGroups', JSON.stringify(pacGroups));
-            updateGroupList();
-        }
-
-        // Initialize lists
-        window.addEventListener('DOMContentLoaded', updateGroupList);
-
-        let lastDiffData = null;
-
-        async function comparePac() {
-            const prodUrl = document.getElementById('prodUrl').value;
-            const testUrl = document.getElementById('testUrl').value;
-            const sampleUrl = document.getElementById('diffSampleUrl').value;
-            if(!prodUrl || !testUrl) return alert("URL을 입력해주세요.");
-
-            document.getElementById('diffLoading').classList.remove('d-none');
-            document.getElementById('diffResults').style.display = 'none';
-
-            try {
-                const response = await fetch('/api/diff-pac', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prod_url: prodUrl, test_url: testUrl, sample_url: sampleUrl })
-                });
-                const data = await response.json();
-                if(data.error) throw new Error(data.error);
-
-                lastDiffData = data;
-                document.getElementById('diffResults').style.display = 'block';
-                
-                // Show resolution results
-                const existingRes = document.getElementById('diffResolutionAlert');
-                if(existingRes) existingRes.remove();
-
-                if (data.resolved_ips && data.resolved_ips.length > 0) {
-                    const resDiv = document.createElement('div');
-                    resDiv.id = 'diffResolutionAlert';
-                    resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
-                    resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ` + 
-                        data.resolved_ips.map(ip => `<span class="badge bg-white text-dark border ms-1">${ip}</span>`).join('');
-                    const resContainer = document.getElementById('diffResults');
-                    resContainer.insertBefore(resDiv, resContainer.firstChild);
-                }
-
-                updateStatus('prod', data.prod_status);
-                updateStatus('test', data.test_status);
-                renderDiff();
-
-            } catch (e) {
-                alert("비교 실패: " + e.message);
-            } finally {
-                document.getElementById('diffLoading').classList.add('d-none');
-            }
-        }
-
-        function renderDiff() {
-            if(!lastDiffData) return;
-            const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
-            const diffLines = showOnlyChanges ? lastDiffData.changes_only : lastDiffData.diff_result;
-            
-            const viewer = document.getElementById('diffViewer');
-            viewer.innerHTML = diffLines.map(line => {
-                let cls = '';
-                if(line.startsWith('+')) cls = 'add';
-                else if(line.startsWith('-')) cls = 'remove';
-                else if(line.startsWith('?')) return ''; // Skip diff pointers
-                
-                return `<div class="diff-line ${cls}"><span class="diff-prefix">${line[0]}</span>${line.substring(2)}</div>`;
-            }).join('');
-        }
-
-        function copyDiff() {
-            if(!lastDiffData) return;
-            const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
-            const diffLines = showOnlyChanges ? lastDiffData.changes_only : lastDiffData.diff_result;
-            copyTextToClipboard(diffLines.join('\n'));
-        }
-
-        function updateStatus(type, status) {
-            const card = document.getElementById(type + 'StatusCard');
-            const validText = document.getElementById(type + 'ValidText');
-            const proxyText = document.getElementById(type + 'ProxyResult');
-            
-            if(status.valid) {
-                card.className = 'p-3 rounded border h-100 border-success-subtle bg-success-subtle bg-opacity-10';
-                validText.className = 'fw-bold text-success';
-                validText.innerText = "Syntax OK";
-                proxyText.innerHTML = `Result: ${status.proxy}`;
-            } else {
-                card.className = 'p-3 rounded border h-100 border-danger-subtle bg-danger-subtle bg-opacity-10';
-                validText.className = 'fw-bold text-danger';
-                validText.innerText = "Syntax Error";
-                proxyText.innerText = status.error;
-            }
-        }
-
-        // Global functions reused
-        function switchCategory(catId) {
-            document.querySelectorAll('.main-nav .nav-link').forEach(el => el.classList.remove('active'));
-            document.getElementById('cat-' + catId).classList.add('active');
-            document.querySelectorAll('.sub-nav').forEach(el => el.classList.add('d-none'));
-            const activeSubNav = document.getElementById('sub-' + catId);
-            activeSubNav.classList.remove('d-none');
-            activeSubNav.querySelector('.nav-link').click();
-        }
-
-        function showTool(toolId) {
-            document.querySelectorAll('.sub-nav .nav-link').forEach(el => el.classList.remove('active'));
-            const link = document.getElementById('tool-' + toolId);
-            if(link) link.classList.add('active');
-            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            const view = document.getElementById('view-' + toolId);
-            if(view) view.classList.add('active');
-        }
-
-        async function transform(type, action) {
-            const input = document.getElementById(`${type}Input`).value;
-            if(!input) return;
-            const response = await fetch(`/api/transform/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: input, action: action }) });
-            const result = await response.json();
-            document.getElementById(`${type}Output`).value = result.result || result.error;
-        }
-
-        document.getElementById('counterInput').addEventListener('input', async function() {
-            const response = await fetch('/api/analyze-text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: this.value, encoding: document.getElementById('encodingSelect').value }) });
-            const data = await response.json();
-            document.getElementById('byteResult').innerText = data.bytes;
-            document.getElementById('charCountResult').innerText = data.chars;
-            if (data.details) {
-                document.getElementById('detailResult').innerHTML = Object.entries(data.details).map(([k, v]) => `<span class="badge bg-white text-dark border fw-normal">${k}: ${v}</span>`).join('');
-            }
-        });
-
-        function copyAnalysisReport() {
-            const report = `[Text Analysis]\n- Bytes: ${document.getElementById('byteResult').innerText}\n- Chars: ${document.getElementById('charCountResult').innerText}\n- Details: ${Array.from(document.querySelectorAll('#detailResult span')).map(s=>s.innerText).join(', ')}`;
-            copyTextToClipboard(report);
-        }
-
-        let unitMap = {};
-        window.addEventListener('load', async () => {
-            const resp = await fetch('/api/units');
-            unitMap = await resp.json();
-            loadUnits();
-        });
-
-        function loadUnits() {
-            const cat = document.getElementById('unitCategory').value;
-            const units = unitMap[cat] || [];
-            const leftSelect = document.getElementById('leftUnit');
-            const rightSelect = document.getElementById('rightUnit');
-            leftSelect.innerHTML = rightSelect.innerHTML = '';
-            units.forEach((u, i) => {
-                leftSelect.innerHTML += `<option value="${u}" ${i===0?'selected':''}>${u}</option>`;
-                rightSelect.innerHTML += `<option value="${u}" ${i===1?'selected':''}>${u}</option>`;
-            });
-            if(units.length > 0) doConvert('left');
-        }
-
-        async function doConvert(direction) {
-            const cat = document.getElementById('unitCategory').value;
-            const val = document.getElementById(direction === 'left' ? 'leftVal' : 'rightVal').value;
-            const fromUnit = document.getElementById(direction === 'left' ? 'leftUnit' : 'rightUnit').value;
-            const toUnit = document.getElementById(direction === 'left' ? 'rightUnit' : 'leftUnit').value;
-            if (val === '') return;
-            const response = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: cat, value: parseFloat(val), from_unit: fromUnit, to_unit: toUnit }) });
-            const data = await response.json();
-            document.getElementById(direction === 'left' ? 'rightVal' : 'leftVal').value = data.result;
-            document.getElementById('unitFormula').innerText = data.formula || "";
-        }
-
-        async function beautifyJson() {
-            const input = document.getElementById('jsonInput').value;
-            const response = await fetch('/api/beautify-json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: input }) });
-            const result = await response.json();
-            document.getElementById('jsonOutput').value = result.formatted || result.error;
-        }
-
-        async function uploadHar() {
-            const file = document.getElementById('harFile').files[0];
-            if(!file) return;
-            const formData = new FormData(); formData.append('file', file);
-            const response = await fetch('/api/extract-har', { method: 'POST', body: formData });
-            const data = await response.json();
-            const resultsBody = document.getElementById('harResults');
-            resultsBody.innerHTML = '';
-            if(data.results) {
-                document.getElementById('harTableContainer').style.display = 'block';
-                data.results.forEach(item => {
-                    resultsBody.innerHTML += `<tr><td><span class="badge bg-light text-dark border">${item.method}</span></td><td class="text-truncate" style="max-width:200px;">${item.url}</td><td class="text-truncate" style="max-width:150px;">${item.headers.Authorization}</td></tr>`;
-                });
-            }
-        }
-
-        let lastSearchPos = 0;
-        function searchInPac(event) {
-            if (event && event.key !== 'Enter') return;
-            
-            const textarea = document.getElementById('pacPreview');
-            const query = document.getElementById('pacSearchInput').value.toLowerCase();
-            if (!query) return;
-
-            const text = textarea.value.toLowerCase();
-            let pos = text.indexOf(query, lastSearchPos + 1);
-            
-            if (pos === -1) {
-                pos = text.indexOf(query); // Wrap around
-            }
-
-            if (pos !== -1) {
-                textarea.focus();
-                textarea.setSelectionRange(pos, pos + query.length);
-                
-                // Scroll to position (heuristic)
-                const lineNum = text.substr(0, pos).split('\n').length;
-                textarea.scrollTop = (lineNum - 3) * 18; 
-                
-                lastSearchPos = pos;
-            } else {
-                alert("검색 결과가 없습니다.");
-                lastSearchPos = 0;
-            }
-        }
-
-        async function testPac() {
-            const pacUrl = document.getElementById('pacUrl').value;
-            const targetUrl = document.getElementById('targetUrl').value;
-            if(!pacUrl || !targetUrl) return;
-            const response = await fetch('/api/test-pac', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pac_url: pacUrl, target_url: targetUrl }) });
-            const data = await response.json();
-            document.getElementById('pacResultBox').style.display = 'block';
-            if(data.error) {
-                document.getElementById('pacResultText').innerText = "Error";
-                document.getElementById('pacResolvedIp').innerHTML = "-";
-                document.getElementById('pacPreview').value = data.error;
-            } else {
-                const ipContainer = document.getElementById('pacResolvedIp');
-                if (data.resolved_ips && data.resolved_ips.length > 0) {
-                    ipContainer.innerHTML = data.resolved_ips.map(ip => 
-                        `<span class="badge bg-white text-dark border font-monospace" style="font-weight:500">${ip}</span>`
-                    ).join('');
-                } else {
-                    ipContainer.innerHTML = '<span class="text-danger small">Failed to resolve</span>';
-                }
-                
-                document.getElementById('pacResultText').innerText = data.result;
-                document.getElementById('pacPreview').value = data.pac_preview;
-                lastSearchPos = 0;
-            }
-        }
-
-        function copyToClipboard(id) { copyTextToClipboard(document.getElementById(id).value); }
-        function copyTextToClipboard(text) {
-            if (!text) return;
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => alert("복사되었습니다."));
-            } else {
-                const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); alert("복사되었습니다.");
-            }
-        }
-    </script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
