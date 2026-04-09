@@ -49,6 +49,8 @@
                 
                 <div id="pacResultBox" style="display:none;">
                     <div class="p-3 rounded bg-light border mb-3">
+                        <small class="text-muted d-block mb-1">Your IP</small>
+                        <div class="small fw-bold text-dark mb-2" id="pacMyIp"></div>
                         <small class="text-muted d-block mb-1">Target Resolution (nslookup)</small>
                         <div class="d-flex flex-wrap gap-1 mb-2" id="pacResolvedIp"></div>
                         <small class="text-muted d-block mb-1">Resulting Proxy</small>
@@ -128,13 +130,11 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold mb-0">Text Content Difference</h6>
                         <div class="d-flex gap-2 align-items-center">
-                            <button class="btn btn-dark btn-sm" onclick="copyFullReport()">Copy Full Report</button>
-                            <div class="vr mx-1"></div>
-                            <div class="form-check form-switch small">
+                            <button class="btn btn-dark btn-sm" onclick="copyFullReport()">Copy Report</button>
+                            <div class="form-check form-switch small ms-2">
                                 <input class="form-check-input" type="checkbox" id="diffOnlyToggle" onchange="renderDiff()">
                                 <label class="form-check-label" for="diffOnlyToggle">Show Only Changes</label>
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="copyDiff()">Copy Diff</button>
                         </div>
                     </div>
                     

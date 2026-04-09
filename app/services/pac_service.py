@@ -60,7 +60,7 @@ class PacService:
                 return response.text
 
     @staticmethod
-    def test_pac(pac_url: str, target_url: str) -> dict:
+    def test_pac(pac_url: str, target_url: str, client_ip: str = None) -> dict:
         try:
             pac_url = PacService._ensure_schema(pac_url)
             target_url = PacService._ensure_schema(target_url)
@@ -78,6 +78,7 @@ class PacService:
                 "pac_url": pac_url,
                 "target_url": target_url,
                 "resolved_ips": val["resolved_ips"],
+                "client_ip": client_ip,
                 "result": val["proxy"],
                 "pac_preview": pac_text
             }
@@ -85,7 +86,7 @@ class PacService:
             return {"error": str(e)}
 
     @staticmethod
-    def diff_pac(prod_url: str, test_url: str, sample_url: str) -> dict:
+    def diff_pac(prod_url: str, test_url: str, sample_url: str, client_ip: str = None) -> dict:
         try:
             prod_url = PacService._ensure_schema(prod_url)
             test_url = PacService._ensure_schema(test_url)
@@ -109,6 +110,7 @@ class PacService:
             
             return {
                 "sample_url": sample_url,
+                "client_ip": client_ip,
                 "resolved_ips": list(set(prod_val["resolved_ips"] + test_val["resolved_ips"])),
                 "prod_status": {
                     "valid": prod_val["valid"], 

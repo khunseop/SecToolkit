@@ -116,4 +116,5 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     
     assert response.status_code == 200
     assert "8.8.8.8" in response.json()["resolved_ips"]
+    assert "client_ip" in response.json()
     assert "result" in response.json()

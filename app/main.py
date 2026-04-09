@@ -90,12 +90,12 @@ async def extract_har_api(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 @app.post("/api/test-pac")
-async def test_pac_api(request: PacRequest):
-    return PacService.test_pac(request.pac_url, request.target_url)
+async def test_pac_api(request: PacRequest, fastapi_req: Request):
+    return PacService.test_pac(request.pac_url, request.target_url, fastapi_req.client.host)
 
 @app.post("/api/diff-pac")
-async def diff_pac_api(request: PacDiffRequest):
-    return PacService.diff_pac(request.prod_url, request.test_url, request.sample_url)
+async def diff_pac_api(request: PacDiffRequest, fastapi_req: Request):
+    return PacService.diff_pac(request.prod_url, request.test_url, request.sample_url, fastapi_req.client.host)
 
 if __name__ == "__main__":
     import uvicorn

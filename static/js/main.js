@@ -21,7 +21,8 @@ function updateGroupList() {
     quickList.innerHTML = pacGroups.map((g, i) => renderItem(g, i, false)).join('');
     
     // Hide quick load if empty
-    document.getElementById('pacQuickSelect').style.display = pacGroups.length > 0 ? 'flex' : 'none';
+    const quickSelect = document.getElementById('pacQuickSelect');
+    if (quickSelect) quickSelect.style.display = pacGroups.length > 0 ? 'flex' : 'none';
 }
 
 function savePacGroup() {
@@ -85,7 +86,8 @@ async function comparePac() {
             const resDiv = document.createElement('div');
             resDiv.id = 'diffResolutionAlert';
             resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
-            resDiv.innerHTML = `<strong>Resolution:</strong> ${data.sample_url} &rarr; ` + 
+            resDiv.innerHTML = `<strong>Your IP:</strong> <span class="badge bg-white text-dark border me-3">${data.client_ip || 'Unknown'}</span> ` +
+                `<strong>Resolution:</strong> ${data.sample_url} &rarr; ` + 
                 data.resolved_ips.map(ip => `<span class="badge bg-white text-dark border ms-1">${ip}</span>`).join('');
             const resContainer = document.getElementById('diffResults');
             resContainer.insertBefore(resDiv, resContainer.firstChild);
@@ -93,7 +95,7 @@ async function comparePac() {
 
         updateStatus('prod', data.prod_status);
         updateStatus('test', data.test_status);
-
+        
         // Render Summary
         const summary = {
             added: data.diff_result.filter(l => l.startsWith('+')).length,
@@ -112,42 +114,13 @@ async function comparePac() {
 
         renderDiff();
 
-        } catch (e) {
+    } catch (e) {
         alert("비교 실패: " + e.message);
-        } finally {
+    } finally {
         document.getElementById('diffLoading').classList.add('d-none');
-        }
-        }
+    }
+}
 
-        function copyFullReport() {
-        if(!lastDiffData) return;
-        const data = lastDiffData;
-        const added = data.diff_result.filter(l => l.startsWith('+')).length;
-        const removed = data.diff_result.filter(l => l.startsWith('-')).length;
-
-        let report = `[PAC Comparison Report]\n`;
-        report += `Sample URL: ${data.sample_url}\n`;
-        report += `Resolved IPs: ${data.resolved_ips.join(', ')}\n\n`;
-
-        report += `[Validation Results]\n`;
-        report += `- Production: ${data.prod_status.valid ? 'OK' : 'Error'} (${data.prod_status.proxy})\n`;
-        report += `- Test (Proposed): ${data.test_status.valid ? 'OK' : 'Error'} (${data.test_status.proxy})\n`;
-        report += `- Matching Result: ${data.prod_status.proxy === data.test_status.proxy ? 'SAME' : 'CHANGED'}\n\n`;
-
-        report += `[Content Diff Summary]\n`;
-        report += `- Lines Added: ${added}\n`;
-        report += `- Lines Removed: ${removed}\n`;
-        report += `- Total Changes: ${data.changes_only.length} lines\n\n`;
-
-        report += `[Changes List]\n`;
-        if (data.changes_only.length > 0) {
-        report += data.changes_only.join('\n');
-        } else {
-        report += "No changes detected.";
-        }
-
-        copyTextToClipboard(report);
-        }
 function renderDiff() {
     if(!lastDiffData) return;
     const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
@@ -164,11 +137,35 @@ function renderDiff() {
     }).join('');
 }
 
-function copyDiff() {
+function copyFullReport() {
     if(!lastDiffData) return;
-    const showOnlyChanges = document.getElementById('diffOnlyToggle').checked;
-    const diffLines = showOnlyChanges ? lastDiffData.changes_only : lastDiffData.diff_result;
-    copyTextToClipboard(diffLines.join('\n'));
+    const data = lastDiffData;
+    const added = data.diff_result.filter(l => l.startsWith('+')).length;
+    const removed = data.diff_result.filter(l => l.startsWith('-')).length;
+    
+    let report = `[PAC Comparison Report]\n`;
+    report += `Your IP: ${data.client_ip || 'Unknown'}\n`;
+    report += `Sample URL: ${data.sample_url}\n`;
+    report += `Resolved IPs: ${data.resolved_ips.join(', ')}\n\n`;
+    
+    report += `[Validation Results]\n`;
+    report += `- Production: ${data.prod_status.valid ? 'OK' : 'Error'} (${data.prod_status.proxy})\n`;
+    report += `- Test (Proposed): ${data.test_status.valid ? 'OK' : 'Error'} (${data.test_status.proxy})\n`;
+    report += `- Matching Result: ${data.prod_status.proxy === data.test_status.proxy ? 'SAME' : 'CHANGED'}\n\n`;
+    
+    report += `[Content Diff Summary]\n`;
+    report += `- Lines Added: ${added}\n`;
+    report += `- Lines Removed: ${removed}\n`;
+    report += `- Total Changes: ${data.changes_only.length} lines\n\n`;
+    
+    report += `[Changes List]\n`;
+    if (data.changes_only.length > 0) {
+        report += data.changes_only.join('\n');
+    } else {
+        report += "No changes detected.";
+    }
+    
+    copyTextToClipboard(report);
 }
 
 function updateStatus(type, status) {
@@ -257,7 +254,9 @@ window.addEventListener('load', async () => {
 });
 
 function loadUnits() {
-    const cat = document.getElementById('unitCategory').value;
+    const unitCategory = document.getElementById('unitCategory');
+    if (!unitCategory) return;
+    const cat = unitCategory.value;
     const units = unitMap[cat] || [];
     const leftSelect = document.getElementById('leftUnit');
     const rightSelect = document.getElementById('rightUnit');
@@ -346,6 +345,7 @@ async function testPac() {
     if(data.error) {
         document.getElementById('pacResultText').innerText = "Error";
         document.getElementById('pacResolvedIp').innerHTML = "-";
+        document.getElementById('pacMyIp').innerText = "-";
         document.getElementById('pacPreview').value = data.error;
     } else {
         const ipContainer = document.getElementById('pacResolvedIp');
@@ -357,6 +357,7 @@ async function testPac() {
             ipContainer.innerHTML = '<span class="text-danger small">Failed to resolve</span>';
         }
         
+        document.getElementById('pacMyIp').innerText = data.client_ip || "Unknown";
         document.getElementById('pacResultText').innerText = data.result;
         document.getElementById('pacPreview').value = data.pac_preview;
         lastSearchPos = 0;
