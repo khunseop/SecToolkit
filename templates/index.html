@@ -102,27 +102,33 @@
             </div>
 
             <!-- Diff Controls -->
-            <div class="tool-card">
-                <h4 class="fw-bold">Compare PAC Files</h4>
-                <div class="mb-3"><label class="small text-muted mb-2">Sample URL for Validation</label><input type="text" class="form-control" id="diffSampleUrl" value="https://www.google.com"></div>
-                <button class="btn btn-primary w-100 mb-4" onclick="comparePac()">Compare & Validate</button>
+            <div class="tool-card p-4 border shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Compare PAC Files</h5>
+                    <button class="btn btn-outline-primary btn-sm px-4" onclick="comparePac()">Compare & Validate</button>
+                </div>
                 
-                <div id="diffLoading" class="text-center d-none"><div class="spinner-border spinner-border-sm text-primary"></div> 비교 중...</div>
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-sm-3 text-muted small">Sample Validation URL</div>
+                    <div class="col-sm-9"><input type="text" class="form-control form-control-sm font-monospace" id="diffSampleUrl" value="https://www.google.com"></div>
+                </div>
+                
+                <div id="diffLoading" class="text-center d-none py-2 mb-3 small"><div class="spinner-border spinner-border-sm text-primary"></div> 비교 중...</div>
                 
                 <div id="diffResults" style="display:none;">
-                    <div class="row g-3 mb-4">
+                    <div class="row g-2 mb-4">
                         <div class="col-md-6">
-                            <div class="p-3 rounded border h-100" id="prodStatusCard">
+                            <div class="p-3 rounded border h-100 bg-white" id="prodStatusCard">
                                 <small class="text-muted d-block mb-1">Production PAC</small>
-                                <div class="fw-bold" id="prodValidText"></div>
-                                <div class="small text-truncate text-muted mt-2" id="prodProxyResult"></div>
+                                <div class="fw-bold small" id="prodValidText"></div>
+                                <div class="font-monospace small text-truncate text-muted mt-2" id="prodProxyResult" style="font-size: 0.75rem;"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 rounded border h-100" id="testStatusCard">
+                            <div class="p-3 rounded border h-100 bg-white" id="testStatusCard">
                                 <small class="text-muted d-block mb-1">Test PAC (Proposed)</small>
-                                <div class="fw-bold" id="testValidText"></div>
-                                <div class="small text-truncate text-muted mt-2" id="testProxyResult"></div>
+                                <div class="fw-bold small" id="testValidText"></div>
+                                <div class="font-monospace small text-truncate text-muted mt-2" id="testProxyResult" style="font-size: 0.75rem;"></div>
                             </div>
                         </div>
                     </div>

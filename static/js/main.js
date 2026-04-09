@@ -85,10 +85,20 @@ async function comparePac() {
         if (data.resolved_ips && data.resolved_ips.length > 0) {
             const resDiv = document.createElement('div');
             resDiv.id = 'diffResolutionAlert';
-            resDiv.className = 'alert alert-info py-2 px-3 small mb-3';
-            resDiv.innerHTML = `<strong>Your IP:</strong> <span class="badge bg-white text-dark border me-3">${data.client_ip || 'Unknown'}</span> ` +
-                `<strong>Resolution:</strong> ${data.sample_url} &rarr; ` + 
-                data.resolved_ips.map(ip => `<span class="badge bg-white text-dark border ms-1">${ip}</span>`).join('');
+            resDiv.className = 'border rounded p-3 small mb-4 bg-white shadow-sm';
+            resDiv.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-sm-3 text-muted">Client IP</div>
+                    <div class="col-sm-9 fw-bold">${data.client_ip || 'Unknown'}</div>
+                    <div class="col-12 border-top my-1"></div>
+                    <div class="col-sm-3 text-muted">Target URL</div>
+                    <div class="col-sm-9 font-monospace">${data.sample_url}</div>
+                    <div class="col-12 border-top my-1"></div>
+                    <div class="col-sm-3 text-muted">Resolved IPs</div>
+                    <div class="col-sm-9 d-flex flex-wrap gap-1">
+                        ${data.resolved_ips.map(ip => `<span class="badge bg-light text-dark border font-monospace fw-normal">${ip}</span>`).join('')}
+                    </div>
+                </div>`;
             const resContainer = document.getElementById('diffResults');
             resContainer.insertBefore(resDiv, resContainer.firstChild);
         }
