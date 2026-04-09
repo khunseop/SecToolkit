@@ -56,6 +56,7 @@ function deletePacGroup(i) {
 window.addEventListener('DOMContentLoaded', updateGroupList);
 
 let lastDiffData = null;
+let lastPacContent = "";
 
 function renderCommonResult(data) {
     const box = document.getElementById('commonResultBox');
@@ -108,10 +109,70 @@ async function testProdPac() {
         updateStatus('prod', { valid: true, proxy: data.result });
         
         document.getElementById('testModeContent').style.display = 'block';
-        document.getElementById('pacPreview').value = data.pac_preview;
-        lastSearchPos = 0;
+        lastPacContent = data.pac_preview;
+        document.getElementById('pacSearchInput').value = '';
+        renderPacContent(lastPacContent);
     } catch (e) {
         alert("테스트 실패: " + e.message);
+    } finally {
+        document.getElementById('diffLoading').classList.add('d-none');
+    }
+}
+
+async function comparePac() {
+    const prodUrl = document.getElementById('prodUrl').value;
+    const testUrl = document.getElementById('testUrl').value;
+    const sampleUrl = document.getElementById('diffSampleUrl').value;
+    if(!prodUrl || !testUrl) return alert("Prod 및 Test PAC URL을 모두 입력해주세요.");
+
+    document.getElementById('diffLoading').classList.remove('d-none');
+    
+    // Reset Views
+    document.getElementById('commonResultBox').style.display = 'none';
+    document.getElementById('statusCardsRow').style.display = 'none';
+    document.getElementById('testStatusCol').style.display = 'none';
+    document.getElementById('diffModeContent').style.display = 'none';
+    document.getElementById('testModeContent').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/diff-pac', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prod_url: prodUrl, test_url: testUrl, sample_url: sampleUrl })
+        });
+        const data = await response.json();
+        if(data.error) throw new Error(data.error);
+
+        lastDiffData = data;
+        renderCommonResult(data);
+        
+        // Show side-by-side status cards
+        document.getElementById('statusCardsRow').style.display = 'flex';
+        document.getElementById('prodStatusCol').className = 'col-md-6';
+        document.getElementById('testStatusCol').style.display = 'block';
+        
+        updateStatus('prod', data.prod_status);
+        updateStatus('test', data.test_status);
+        
+        const summary = {
+            added: data.diff_result.filter(l => l.startsWith('+')).length,
+            removed: data.diff_result.filter(l => l.startsWith('-')).length,
+            total: data.diff_result.length
+        };
+        const summaryDiv = document.getElementById('diffSummary');
+        summaryDiv.style.display = 'block';
+        summaryDiv.innerHTML = `
+            <div class="row text-center">
+                <div class="col-4 border-end"><div class="text-muted small">Added</div><div class="h5 mb-0 text-success fw-bold">${summary.added}</div></div>
+                <div class="col-4 border-end"><div class="text-muted small">Removed</div><div class="h5 mb-0 text-danger fw-bold">${summary.removed}</div></div>
+                <div class="col-4"><div class="text-muted small">Diff Lines</div><div class="h5 mb-0 text-primary fw-bold">${data.changes_only.length}</div></div>
+            </div>
+        `;
+
+        document.getElementById('diffModeContent').style.display = 'block';
+        renderDiff();
+    } catch (e) {
+        alert("비교 실패: " + e.message);
     } finally {
         document.getElementById('diffLoading').classList.add('d-none');
     }
@@ -360,34 +421,31 @@ async function uploadHar() {
     }
 }
 
-let lastSearchPos = 0;
-function searchInPac(event) {
-    if (event && event.key !== 'Enter') return;
-    
-    const textarea = document.getElementById('pacPreview');
+function searchInPac() {
     const query = document.getElementById('pacSearchInput').value.toLowerCase();
-    if (!query) return;
+    renderPacContent(lastPacContent, query);
+}
 
-    const text = textarea.value.toLowerCase();
-    let pos = text.indexOf(query, lastSearchPos + 1);
+function renderPacContent(content, filter = '') {
+    if(!content) return;
+    const lines = content.split('\n');
+    const viewer = document.getElementById('pacViewer');
+    if (!viewer) return;
     
-    if (pos === -1) {
-        pos = text.indexOf(query); // Wrap around
-    }
+    let html = '';
+    lines.forEach((line, i) => {
+        const lineNum = i + 1;
+        const isMatch = filter && line.toLowerCase().includes(filter);
+        if (filter && !isMatch) return;
 
-    if (pos !== -1) {
-        textarea.focus();
-        textarea.setSelectionRange(pos, pos + query.length);
-        
-        // Scroll to position (heuristic)
-        const lineNum = text.substr(0, pos).split('\n').length;
-        textarea.scrollTop = (lineNum - 3) * 18; 
-        
-        lastSearchPos = pos;
-    } else {
-        alert("검색 결과가 없습니다.");
-        lastSearchPos = 0;
-    }
+        html += `
+            <div class="pac-line ${isMatch ? 'match' : ''}">
+                <span class="line-num">${lineNum}</span>
+                <span class="line-content">${line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
+            </div>
+        `;
+    });
+    viewer.innerHTML = html;
 }
 
 function copyToClipboard(id) { copyTextToClipboard(document.getElementById(id).value); }

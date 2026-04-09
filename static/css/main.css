@@ -128,28 +128,40 @@ h4 {
     font-weight: 700; 
 }
 
-/* Diff Styles */
-.diff-container { 
-    font-family: monospace; 
-    font-size: 0.85rem; 
+/* Diff & Viewer Styles */
+.diff-viewer, .pac-viewer { 
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.75rem; 
     background: #fff; 
     border: 1px solid #eee; 
     border-radius: 8px; 
-    overflow: hidden; 
+    overflow-x: auto;
 }
 
-.diff-line { 
+.diff-line, .pac-line { 
     display: flex; 
-    padding: 0.1rem 0.5rem; 
-    white-space: pre-wrap; 
-    word-break: break-all; 
+    padding: 0.05rem 0.5rem; 
+    white-space: pre; 
     border-bottom: 1px solid #f9f9f9; 
+}
+
+.line-num { 
+    width: 35px; 
+    flex-shrink: 0; 
+    text-align: right; 
+    padding-right: 10px; 
+    color: #ccc; 
+    user-select: none; 
+    border-right: 1px solid #eee; 
+    margin-right: 10px; 
 }
 
 .diff-line.add { background-color: var(--diff-add); }
 .diff-line.remove { background-color: var(--diff-remove); }
 .diff-line.header { background-color: #f6f8fa; font-weight: bold; color: #57606a; }
 .diff-prefix { width: 20px; flex-shrink: 0; color: #999; }
+.pac-line:hover { background-color: #f8f9fa; }
+.pac-line.match { background-color: #fff9c4; }
 
 /* PAC Manager Styles */
 .accordion-button:not(.collapsed) { background-color: rgba(13, 110, 253, 0.05); color: var(--primary-color); box-shadow: none; }
