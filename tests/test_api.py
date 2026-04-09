@@ -118,3 +118,37 @@ def test_pac_dns_resolution(mock_get, mock_dns):
     assert "8.8.8.8" in response.json()["resolved_ips"]
     assert "client_ip" in response.json()
     assert "result" in response.json()
+
+@patch('requests.get')
+def test_pac_fetch_error(mock_get):
+    import requests
+    # Test Timeout
+    mock_get.side_effect = requests.exceptions.Timeout()
+    response = client.post("/api/test-pac", json={
+        "pac_url": "http://example.com/timeout.pac",
+        "target_url": "https://www.google.com"
+    })
+    assert response.status_code == 200
+    assert "timed out" in response.json()["error"]
+
+    # Test ConnectionError
+    mock_get.side_effect = requests.exceptions.ConnectionError()
+    response = client.post("/api/test-pac", json={
+        "pac_url": "http://example.com/connerr.pac",
+        "target_url": "https://www.google.com"
+    })
+    assert response.status_code == 200
+    assert "Could not connect" in response.json()["error"]
+
+    # Test HTTP 404
+    mock_resp = MagicMock()
+    mock_resp.status_code = 404
+    mock_resp.raise_for_status.side_effect = requests.exceptions.HTTPError(response=mock_resp)
+    mock_get.side_effect = None
+    mock_get.return_value = mock_resp
+    response = client.post("/api/test-pac", json={
+        "pac_url": "http://example.com/404.pac",
+        "target_url": "https://www.google.com"
+    })
+    assert response.status_code == 200
+    assert "404" in response.json()["error"]
