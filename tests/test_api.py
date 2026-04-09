@@ -84,7 +84,6 @@ def test_pac_services(mock_get):
     })
     assert response.status_code == 200
     assert response.json()["result"] == "PROXY 8.8.8.8:8080"
-    assert "Tracing disabled" in response.json()["matched_rule"]
     
     # Test PAC Diff
     response = client.post("/api/diff-pac", json={

@@ -29,7 +29,6 @@ class PacService:
             return {
                 "valid": True, 
                 "proxy": proxy, 
-                "matched_rule": "Tracing disabled (Standard mode)", 
                 "resolved_ip": resolved_ip,
                 "error": None
             }
@@ -80,7 +79,6 @@ class PacService:
                 "target_url": target_url,
                 "resolved_ip": val["resolved_ip"],
                 "result": val["proxy"],
-                "matched_rule": val["matched_rule"],
                 "pac_preview": pac_text
             }
         except Exception as e:
@@ -115,13 +113,11 @@ class PacService:
                 "prod_status": {
                     "valid": prod_val["valid"], 
                     "proxy": prod_val["proxy"], 
-                    "matched_rule": prod_val["matched_rule"],
                     "error": prod_val["error"]
                 },
                 "test_status": {
                     "valid": test_val["valid"], 
                     "proxy": test_val["proxy"], 
-                    "matched_rule": test_val["matched_rule"],
                     "error": test_val["error"]
                 },
                 "diff_result": raw_diff,

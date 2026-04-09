@@ -91,8 +91,6 @@
                         <div class="small fw-bold text-dark mb-2" id="pacResolvedIp"></div>
                         <small class="text-muted d-block mb-1">Resulting Proxy</small>
                         <div class="h5 fw-bold text-primary mb-2" id="pacResultText"></div>
-                        <small class="text-muted d-block mb-1">Matched Rule (Heuristic)</small>
-                        <pre class="small fw-bold text-dark border p-2 bg-white rounded mb-0" id="pacMatchedRule" style="font-family: monospace;"></pre>
                     </div>
                     <label class="small text-muted mb-2">PAC File Preview</label><textarea class="form-control small text-muted" id="pacPreview" rows="10" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
                 </div>
@@ -293,7 +291,7 @@
                 card.className = 'p-3 rounded border h-100 border-success-subtle bg-success-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-success';
                 validText.innerText = "Syntax OK";
-                proxyText.innerHTML = `Result: ${status.proxy}<br><small class="text-muted d-block mt-2 mb-1">Matched Rule:</small><pre class="small border p-1 bg-white rounded mb-0" style="font-size: 0.75rem;">${status.matched_rule || '-'}</pre>`;
+                proxyText.innerHTML = `Result: ${status.proxy}`;
             } else {
                 card.className = 'p-3 rounded border h-100 border-danger-subtle bg-danger-subtle bg-opacity-10';
                 validText.className = 'fw-bold text-danger';
@@ -408,13 +406,11 @@
             document.getElementById('pacResultBox').style.display = 'block';
             if(data.error) {
                 document.getElementById('pacResultText').innerText = "Error";
-                document.getElementById('pacMatchedRule').textContent = "-";
                 document.getElementById('pacResolvedIp').innerText = "-";
                 document.getElementById('pacPreview').value = data.error;
             } else {
                 document.getElementById('pacResolvedIp').innerText = data.resolved_ip || "Failed to resolve";
                 document.getElementById('pacResultText').innerText = data.result;
-                document.getElementById('pacMatchedRule').textContent = data.matched_rule || "N/A";
                 document.getElementById('pacPreview').value = data.pac_preview;
             }
         }
