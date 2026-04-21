@@ -56,15 +56,29 @@ async function refreshSystemInfo() {
         if (proxyFormattedDisplay) {
             if (data.settings && Object.keys(data.settings).length > 0) {
                 proxyFormattedDisplay.innerHTML = Object.entries(data.settings).map(([label, val]) => {
-                    let colorClass = "bg-white";
-                    if (label === 'Proxy Enabled' && val === 1) colorClass = "bg-success-subtle";
-                    if (label === 'PAC URL' && val) colorClass = "bg-primary-subtle";
+                    let cardClass = "bg-white";
+                    let valDisplay = val;
+                    
+                    // Status coloring
+                    if (val === "ON") {
+                        cardClass = "bg-success-subtle border-success";
+                        valDisplay = `<span class="badge bg-success">ON</span>`;
+                    } else if (val === "OFF") {
+                        valDisplay = `<span class="badge bg-light text-muted border">OFF</span>`;
+                    } else if (label.includes('Address') || label.includes('PAC')) {
+                        cardClass = "bg-primary-subtle border-primary-subtle";
+                        valDisplay = `<code class="text-primary fw-bold">${val}</code>`;
+                    } else if (label.includes('Bypass')) {
+                        // Split exceptions by semicolon for better display
+                        const exceptions = val.split(';').filter(x => x.trim());
+                        valDisplay = exceptions.map(ex => `<span class="badge bg-white text-dark border fw-normal me-1 mb-1">${ex}</span>`).join('');
+                    }
                     
                     return `
                         <div class="col-md-6 col-lg-4">
-                            <div class="p-3 border rounded h-100 ${colorClass}">
-                                <small class="text-muted d-block mb-1">${label}</small>
-                                <div class="fw-bold text-break" style="font-size: 0.9rem;">${val}</div>
+                            <div class="p-3 border rounded h-100 ${cardClass} shadow-sm">
+                                <small class="text-muted d-block mb-2 fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">${label}</small>
+                                <div class="fw-bold text-break" style="font-size: 0.9rem;">${valDisplay}</div>
                             </div>
                         </div>
                     `;

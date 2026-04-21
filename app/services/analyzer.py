@@ -20,18 +20,30 @@ class AnalyzerService:
                     registry_path = r'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
                     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, registry_path) as key:
                         settings_dict = {}
+                        # Mapping registry keys to user-friendly Windows UI labels
                         targets = [
-                            ('ProxyEnable', 'Proxy Enabled'),
-                            ('ProxyServer', 'Proxy Server'),
-                            ('AutoConfigURL', 'PAC URL'),
-                            ('ProxyOverride', 'Exceptions (Bypass)'),
-                            ('AutoDetect', 'Auto Detect (WPAD)')
+                            ('ProxyEnable', 'Manual Proxy Server'),
+                            ('ProxyServer', 'Proxy Server Address'),
+                            ('ProxyOverride', 'Proxy Exceptions (Bypass)'),
+                            ('AutoConfigURL', 'Use Setup Script (PAC)'),
+                            ('AutoDetect', 'Automatically Detect Settings')
                         ]
                         for value_name, label in targets:
                             try:
                                 val, _ = winreg.QueryValueEx(key, value_name)
+                                # Convert 1/0 to ON/OFF for toggle-like settings
+                                if value_name in ['ProxyEnable', 'AutoDetect']:
+                                    val = "ON" if val == 1 else "OFF"
+                                elif value_name == 'AutoConfigURL':
+                                    # If AutoConfigURL exists, it means "Use setup script" is likely ON
+                                    settings_dict['Setup Script Status'] = "ON"
+                                    settings_dict['Script Address (PAC)'] = val
+                                    continue
+                                
                                 settings_dict[label] = val
                             except FileNotFoundError:
+                                if value_name == 'AutoConfigURL':
+                                    settings_dict['Setup Script Status'] = "OFF"
                                 continue
                         
                         return {
