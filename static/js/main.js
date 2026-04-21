@@ -2,7 +2,8 @@ import { switchCategory, showTool, copyToClipboard, copyTextToClipboard } from '
 import { transform, copyAnalysisReport, initTextCounter } from './modules/transformer.js';
 import { initAnalyzer, loadUnits, doConvert, beautifyJson, uploadHar } from './modules/analyzer.js';
 import { initPac, savePacGroup, selectPacGroup, deletePacGroup, testProdPac, comparePac, renderDiff, copyFullReport, searchInPac } from './modules/pac.js';
-import { refreshSystemInfo, doDnsLookup } from './modules/system.js';
+import { refreshSystemInfo } from './modules/system.js';
+import { doDnsLookup, refreshDnsInfo, initDns } from './modules/dns.js';
 
 // Expose to window for HTML onclick handlers (due to ES6 module scoping)
 window.switchCategory = switchCategory;
@@ -29,11 +30,13 @@ window.searchInPac = searchInPac;
 
 window.refreshSystemInfo = refreshSystemInfo;
 window.doDnsLookup = doDnsLookup;
+window.refreshDnsInfo = refreshDnsInfo;
 
 // Initialize modules
 document.addEventListener('DOMContentLoaded', () => {
     initTextCounter();
     initAnalyzer();
     initPac();
+    initDns();
     refreshSystemInfo();
 });

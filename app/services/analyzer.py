@@ -4,6 +4,48 @@ import platform
 
 class AnalyzerService:
     @staticmethod
+    def get_system_dns_settings() -> dict:
+        """Extracts system-wide DNS settings (DNS Servers)."""
+        system = platform.system()
+        try:
+            if system == "Darwin":
+                # macOS: use scutil --dns to find resolver[1] or primary resolvers
+                result = subprocess.run(['scutil', '--dns'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    return {"raw": result.stdout, "system": system}
+            elif system == "Windows":
+                # Windows: Use PowerShell to get DNS server addresses for active interfaces
+                ps_cmd = "Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object { $_.ServerAddresses -ne $null } | Select-Object InterfaceAlias, ServerAddresses | ConvertTo-Json"
+                result = subprocess.run(['powershell', '-Command', ps_cmd], capture_output=True, text=True)
+                if result.returncode == 0:
+                    try:
+                        parsed = json.loads(result.stdout)
+                        # Normalize single object to list
+                        if isinstance(parsed, dict): parsed = [parsed]
+                        
+                        settings = {}
+                        for item in parsed:
+                            alias = item.get("InterfaceAlias", "Unknown")
+                            addrs = item.get("ServerAddresses", [])
+                            if addrs:
+                                settings[alias] = ", ".join(addrs) if isinstance(addrs, list) else addrs
+                        
+                        return {
+                            "raw": result.stdout,
+                            "system": system,
+                            "settings": settings
+                        }
+                    except:
+                        pass
+                # Fallback to ipconfig /all
+                result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, encoding='cp949')
+                return {"raw": result.stdout, "system": system, "settings": {}}
+            
+            return {"raw": f"DNS detection not supported for {system}.", "system": system, "settings": {}}
+        except Exception as e:
+            return {"error": str(e), "system": system, "settings": {}}
+
+    @staticmethod
     def resolve_dns(host: str) -> dict:
         import socket
         try:

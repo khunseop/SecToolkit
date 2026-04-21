@@ -17,6 +17,11 @@ export async function fetchSystemProxy() {
     return await response.json();
 }
 
+export async function fetchSystemDns() {
+    const response = await fetch('/api/system-dns');
+    return await response.json();
+}
+
 export async function fetchPublicIp() {
     const response = await fetch('https://api64.ipify.org?format=json');
     const data = await response.json();

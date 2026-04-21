@@ -13,6 +13,10 @@ async def get_units():
 async def get_system_proxy_api():
     return AnalyzerService.get_system_proxy_settings()
 
+@router.get("/system-dns")
+async def get_system_dns_api():
+    return AnalyzerService.get_system_dns_settings()
+
 @router.post("/dns-lookup", response_model=DnsLookupResponse)
 async def dns_lookup_api(request: DnsLookupRequest):
     return AnalyzerService.resolve_dns(request.host)
