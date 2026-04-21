@@ -1,0 +1,62 @@
+<!-- URL Tool -->
+<div id="view-url" class="content-section active">
+    <div class="tool-card">
+        <h4 class="fw-bold">URL Encoder / Decoder</h4>
+        <textarea class="form-control mb-3" id="urlInput" rows="5" placeholder="데이터를 입력하세요..."></textarea>
+        <div class="row g-2 mb-3">
+            <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('url', 'encode')">Encode</button></div>
+            <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('url', 'decode')">Decode</button></div>
+        </div>
+        <textarea class="form-control mb-3" id="urlOutput" rows="5" readonly></textarea>
+        <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('urlOutput')">결과 복사</button>
+    </div>
+</div>
+
+<!-- Base64 Tool -->
+<div id="view-base64" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">Base64 Encoder / Decoder</h4>
+        <textarea class="form-control mb-3" id="base64Input" rows="5"></textarea>
+        <div class="row g-2 mb-3">
+            <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'encode')">Encode</button></div>
+            <div class="col-6"><button class="btn btn-primary btn-sm w-100" onclick="transform('base64', 'decode')">Decode</button></div>
+        </div>
+        <textarea class="form-control mb-3" id="base64Output" rows="5" readonly></textarea>
+        <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('base64Output')">결과 복사</button>
+    </div>
+</div>
+
+<!-- Text Counter -->
+<div id="view-counter" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">Text Counter</h4>
+        <textarea class="form-control mb-3" id="counterInput" rows="6"></textarea>
+        <div class="mb-4">
+            <select class="form-select form-select-sm" id="encodingSelect">
+                <option value="utf-8">UTF-8</option>
+                <option value="euc-kr">EUC-KR</option>
+            </select>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="p-2 rounded bg-light border text-center">
+                    <small class="text-muted d-block">Bytes</small>
+                    <span class="h4 fw-bold text-primary" id="byteResult">0</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-2 rounded bg-light border text-center">
+                    <small class="text-muted d-block">Characters</small>
+                    <span class="h4 fw-bold" id="charCountResult">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="p-3 rounded bg-light border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted fw-bold">Analysis Details</small>
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copyAnalysisReport()">결과 복사</button>
+            </div>
+            <div id="detailResult" class="d-flex flex-wrap gap-2"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,62 @@
+<!-- Unit Converter -->
+<div id="view-converter" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">Unit Converter</h4>
+        <div class="mb-4">
+            <label class="small text-muted mb-2">Category</label>
+            <select class="form-select" id="unitCategory" onchange="loadUnits()">
+                <option value="data">Data Size</option>
+                <option value="speed">Transfer Speed</option>
+                <option value="time">Time</option>
+            </select>
+        </div>
+        <div class="p-4 rounded bg-light border mb-3 text-center">
+            <div class="row align-items-center g-3">
+                <div class="col">
+                    <input type="number" class="form-control form-control-lg text-center mb-2" id="leftVal" value="1" oninput="doConvert('left')">
+                    <select class="form-select form-select-sm" id="leftUnit" onchange="doConvert('left')"></select>
+                </div>
+                <div class="col-auto text-muted h4 mb-0">⇄</div>
+                <div class="col">
+                    <input type="number" class="form-control form-control-lg text-center mb-2" id="rightVal" oninput="doConvert('right')">
+                    <select class="form-select form-select-sm" id="rightUnit" onchange="doConvert('left')"></select>
+                </div>
+            </div>
+        </div>
+        <div id="unitFormula" class="text-center small text-muted font-monospace"></div>
+    </div>
+</div>
+
+<!-- JSON Beautifier -->
+<div id="view-beautifier" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">JSON Beautifier</h4>
+        <textarea class="form-control mb-3" id="jsonInput" rows="6"></textarea>
+        <button class="btn btn-primary btn-sm w-100 mb-3" onclick="beautifyJson()">Format JSON</button>
+        <textarea class="form-control mb-3" id="jsonOutput" rows="8" readonly></textarea>
+        <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('jsonOutput')">결과 복사</button>
+    </div>
+</div>
+
+<!-- HAR Extractor -->
+<div id="view-har" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">HAR Header Extractor</h4>
+        <div class="input-group mb-3">
+            <input type="file" class="form-control form-control-sm" id="harFile" accept=".har">
+            <button class="btn btn-primary btn-sm" onclick="uploadHar()">Extract</button>
+        </div>
+        <div class="table-responsive" id="harTableContainer" style="display:none;">
+            <table class="table table-sm small">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>URL</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody id="harResults"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
