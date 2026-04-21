@@ -19,9 +19,11 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     try:
+        # 최신 FastAPI/Starlette 버전에서는 request 객체를 첫 번째 인자로 반드시 전달해야 함
         return templates.TemplateResponse(
-            name="index.html", 
-            context={"request": request}
+            request,
+            "index.html", 
+            {"request": request}
         )
     except Exception as e:
         import traceback
