@@ -5,7 +5,7 @@ import platform
 class AnalyzerService:
     @staticmethod
     def get_system_proxy_settings() -> dict:
-        """Extracts system-wide proxy settings. Currently optimized for macOS."""
+        """Extracts system-wide proxy settings. Optimized for macOS and Windows."""
         system = platform.system()
         try:
             if system == "Darwin":
@@ -14,11 +14,35 @@ class AnalyzerService:
                 if result.returncode == 0:
                     return {"raw": result.stdout, "system": system}
             elif system == "Windows":
-                # Basic environment proxy for Windows
-                import urllib.request
-                return {"raw": str(urllib.request.getproxies()), "system": system}
+                # Detailed proxy settings from Windows Registry
+                try:
+                    import winreg
+                    registry_path = r'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+                    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, registry_path) as key:
+                        settings = []
+                        # List of interesting values to check
+                        targets = [
+                            ('ProxyEnable', 'Proxy Enabled'),
+                            ('ProxyServer', 'Proxy Server'),
+                            ('AutoConfigURL', 'PAC URL'),
+                            ('ProxyOverride', 'Exceptions (Bypass)'),
+                            ('AutoDetect', 'Auto Detect (WPAD)')
+                        ]
+                        for value_name, label in targets:
+                            try:
+                                val, _ = winreg.QueryValueEx(key, value_name)
+                                settings.append(f"{label}: {val}")
+                            except FileNotFoundError:
+                                continue
+                        
+                        if not settings:
+                            return {"raw": "No proxy settings found in Windows Registry.", "system": system}
+                        return {"raw": "\n".join(settings), "system": system}
+                except Exception as reg_err:
+                    import urllib.request
+                    return {"raw": f"Registry Error: {str(reg_err)}\nFallback Proxies: {str(urllib.request.getproxies())}", "system": system}
             
-            return {"raw": "System proxy detection not supported for this OS.", "system": system}
+            return {"raw": f"System proxy detection not fully supported for {system}.", "system": system}
         except Exception as e:
             return {"error": str(e), "system": system}
 
