@@ -56,6 +56,10 @@ async def index():
 async def get_units():
     return {k: list(v.keys()) for k, v in AnalyzerService.CONVERSION_MAP.items()}
 
+@app.get("/api/system-proxy")
+async def get_system_proxy_api():
+    return AnalyzerService.get_system_proxy_settings()
+
 @app.post("/api/transform/url")
 async def transform_url_api(request: TransformRequest):
     result = TransformerService.url_transform(request.data, request.action)

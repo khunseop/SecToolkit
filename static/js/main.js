@@ -3,7 +3,7 @@ let pacGroups = [];
 let selectedPacGroupIdx = null;
 
 async function loadPacGroups() {
-    fetchPublicIp();
+    refreshSystemInfo();
     try {
         const response = await fetch('/api/pac-groups');
         pacGroups = await response.json();
@@ -26,17 +26,31 @@ async function loadPacGroups() {
     }
 }
 
-async function fetchPublicIp() {
-    const display = document.getElementById('publicIpDisplay');
-    if (!display) return;
-    display.innerText = 'Loading...';
+async function refreshSystemInfo() {
+    const ipDisplay = document.getElementById('sysPublicIp');
+    const proxyDisplay = document.getElementById('sysProxyRaw');
+    const osDisplay = document.getElementById('sysOsInfo');
+    
+    if (ipDisplay) ipDisplay.innerText = 'Loading...';
+    if (proxyDisplay) proxyDisplay.innerText = 'Fetching settings...';
+    
+    // 1. Fetch Public IP
     try {
         const response = await fetch('https://api64.ipify.org?format=json');
         const data = await response.json();
-        display.innerText = data.ip;
+        if (ipDisplay) ipDisplay.innerText = data.ip;
     } catch (e) {
-        display.innerText = 'Failed to fetch IP';
-        console.error("Public IP fetch error:", e);
+        if (ipDisplay) ipDisplay.innerText = 'Error';
+    }
+
+    // 2. Fetch System Proxy
+    try {
+        const response = await fetch('/api/system-proxy');
+        const data = await response.json();
+        if (proxyDisplay) proxyDisplay.innerText = data.raw || "No info";
+        if (osDisplay) osDisplay.innerText = data.system || "-";
+    } catch (e) {
+        if (proxyDisplay) proxyDisplay.innerText = 'Failed to fetch proxy settings';
     }
 }
 

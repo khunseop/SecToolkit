@@ -1,6 +1,27 @@
 import json
+import subprocess
+import platform
 
 class AnalyzerService:
+    @staticmethod
+    def get_system_proxy_settings() -> dict:
+        """Extracts system-wide proxy settings. Currently optimized for macOS."""
+        system = platform.system()
+        try:
+            if system == "Darwin":
+                # Use scutil on macOS to get detailed proxy settings
+                result = subprocess.run(['scutil', '--proxy'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    return {"raw": result.stdout, "system": system}
+            elif system == "Windows":
+                # Basic environment proxy for Windows
+                import urllib.request
+                return {"raw": str(urllib.request.getproxies()), "system": system}
+            
+            return {"raw": "System proxy detection not supported for this OS.", "system": system}
+        except Exception as e:
+            return {"error": str(e), "system": system}
+
     # 단위 변환을 위한 기준 값 (Base Unit: Data-Byte, Speed-bps, Time-Second)
     CONVERSION_MAP = {
         "data": {
