@@ -2,9 +2,41 @@ import pacparser
 import requests
 import difflib
 import bisect
+import json
+import os
 from urllib.parse import urlparse
 
 class PacService:
+    DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data")
+    PAC_GROUPS_FILE = os.path.join(DATA_DIR, "pac_groups.json")
+
+    @staticmethod
+    def _ensure_data_dir():
+        if not os.path.exists(PacService.DATA_DIR):
+            os.makedirs(PacService.DATA_DIR)
+        if not os.path.exists(PacService.PAC_GROUPS_FILE):
+            with open(PacService.PAC_GROUPS_FILE, "w", encoding="utf-8") as f:
+                json.dump([], f)
+
+    @staticmethod
+    def get_pac_groups() -> list:
+        PacService._ensure_data_dir()
+        try:
+            with open(PacService.PAC_GROUPS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+
+    @staticmethod
+    def save_pac_groups(groups: list) -> bool:
+        PacService._ensure_data_dir()
+        try:
+            with open(PacService.PAC_GROUPS_FILE, "w", encoding="utf-8") as f:
+                json.dump(groups, f, indent=4, ensure_ascii=False)
+            return True
+        except Exception:
+            return False
+
     @staticmethod
     def _ensure_schema(url: str) -> str:
         if not url: return url

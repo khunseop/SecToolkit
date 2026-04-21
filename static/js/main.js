@@ -1,6 +1,41 @@
 // Server Management
-let pacGroups = JSON.parse(localStorage.getItem('pacGroups') || '[]');
+let pacGroups = [];
 let selectedPacGroupIdx = null;
+
+async function loadPacGroups() {
+    try {
+        const response = await fetch('/api/pac-groups');
+        pacGroups = await response.json();
+        
+        // Migration: If server list is empty, check localStorage
+        if (pacGroups.length === 0) {
+            const local = localStorage.getItem('pacGroups');
+            if (local) {
+                const localGroups = JSON.parse(local);
+                if (localGroups.length > 0) {
+                    pacGroups = localGroups;
+                    await syncPacGroups();
+                    // Optional: localStorage.removeItem('pacGroups');
+                }
+            }
+        }
+        updateGroupList();
+    } catch (e) {
+        console.error("Failed to load PAC groups", e);
+    }
+}
+
+async function syncPacGroups() {
+    try {
+        await fetch('/api/pac-groups', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groups: pacGroups })
+        });
+    } catch (e) {
+        console.error("Failed to sync PAC groups", e);
+    }
+}
 
 function updateGroupList() {
     const list = document.getElementById('pacGroupList');
@@ -25,13 +60,13 @@ function updateGroupList() {
     if (quickSelect) quickSelect.style.display = pacGroups.length > 0 ? 'flex' : 'none';
 }
 
-function savePacGroup() {
+async function savePacGroup() {
     const name = document.getElementById('groupName').value;
     const prod = document.getElementById('prodUrl').value;
     const test = document.getElementById('testUrl').value;
     if(!name || !prod || !test) return alert("모든 필드를 입력해주세요.");
     pacGroups.push({ name, prod, test });
-    localStorage.setItem('pacGroups', JSON.stringify(pacGroups));
+    await syncPacGroups();
     updateGroupList();
     document.getElementById('groupName').value = '';
 }
@@ -43,17 +78,17 @@ function selectPacGroup(i) {
     updateGroupList();
 }
 
-function deletePacGroup(i) {
+async function deletePacGroup(i) {
     if (selectedPacGroupIdx === i) selectedPacGroupIdx = null;
     else if (selectedPacGroupIdx > i) selectedPacGroupIdx--;
     
     pacGroups.splice(i, 1);
-    localStorage.setItem('pacGroups', JSON.stringify(pacGroups));
+    await syncPacGroups();
     updateGroupList();
 }
 
 // Initialize lists
-window.addEventListener('DOMContentLoaded', updateGroupList);
+window.addEventListener('DOMContentLoaded', loadPacGroups);
 
 let lastDiffData = null;
 let lastPacContent = "";

@@ -37,6 +37,9 @@ class PacDiffRequest(BaseModel):
     test_url: str
     sample_url: str
 
+class PacGroupsRequest(BaseModel):
+    groups: list
+
 # Static & Templates
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
@@ -96,6 +99,15 @@ async def test_pac_api(request: PacRequest, fastapi_req: Request):
 @app.post("/api/diff-pac")
 async def diff_pac_api(request: PacDiffRequest, fastapi_req: Request):
     return PacService.diff_pac(request.prod_url, request.test_url, request.sample_url, fastapi_req.client.host)
+
+@app.get("/api/pac-groups")
+async def get_pac_groups_api():
+    return PacService.get_pac_groups()
+
+@app.post("/api/pac-groups")
+async def save_pac_groups_api(request: PacGroupsRequest):
+    success = PacService.save_pac_groups(request.groups)
+    return {"success": success}
 
 if __name__ == "__main__":
     import uvicorn
