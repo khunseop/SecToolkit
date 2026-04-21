@@ -9,15 +9,24 @@ from app.api.routers import transformer, analyzer, pac
 app = FastAPI(title="SecToolkit")
 
 # Static & Templates
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(BASE_DIR)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # /app
+PROJECT_ROOT = os.path.dirname(BASE_DIR)              # /root
+TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "templates")
 
 app.mount("/static", StaticFiles(directory=os.path.join(PROJECT_ROOT, "static")), name="static")
-templates = Jinja2Templates(directory=os.path.join(PROJECT_ROOT, "templates"))
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    try:
+        return templates.TemplateResponse(
+            name="index.html", 
+            context={"request": request}
+        )
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        return HTMLResponse(content=f"Jinja2 Render Error:<br><pre>{error_details}</pre>", status_code=500)
 
 # Register Routers
 app.include_router(transformer.router, prefix="/api")
