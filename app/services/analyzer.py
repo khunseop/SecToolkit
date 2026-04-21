@@ -4,6 +4,34 @@ import platform
 
 class AnalyzerService:
     @staticmethod
+    def resolve_dns(host: str) -> dict:
+        import socket
+        try:
+            # host가 URL 형태일 경우 hostname만 추출
+            if "://" in host:
+                from urllib.parse import urlparse
+                host = urlparse(host).hostname or host
+            
+            # Fetch all associated IP addresses (IPv4 & IPv6)
+            addr_info = socket.getaddrinfo(host, None)
+            ips = list(set([info[4][0] for info in addr_info]))
+            
+            # reverse lookup (optional, for first IP)
+            reverse_name = "-"
+            if ips:
+                try:
+                    reverse_name = socket.gethostbyaddr(ips[0])[0]
+                except: pass
+                
+            return {
+                "host": host,
+                "ips": ips,
+                "reverse_name": reverse_name
+            }
+        except Exception as e:
+            return {"error": str(e), "host": host, "ips": []}
+
+    @staticmethod
     def get_system_proxy_settings() -> dict:
         """Extracts system-wide proxy settings. Optimized for macOS and Windows."""
         system = platform.system()

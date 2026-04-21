@@ -1,4 +1,33 @@
-import { fetchPublicIp, fetchSystemProxy } from './api.js';
+import { fetchPublicIp, fetchSystemProxy, postDnsLookup } from './api.js';
+
+export async function doDnsLookup() {
+    const hostInput = document.getElementById('dnsHostInput');
+    const host = hostInput.value.trim();
+    if (!host) return;
+
+    const resDiv = document.getElementById('dnsResult');
+    const resHost = document.getElementById('dnsResultHost');
+    const resIps = document.getElementById('dnsResultIps');
+    const resReverse = document.getElementById('dnsResultReverse');
+
+    resDiv.classList.remove('d-none');
+    resHost.innerText = 'Searching...';
+    resIps.innerText = '';
+    resReverse.innerText = '';
+
+    try {
+        const data = await postDnsLookup(host);
+        if (data.error) {
+            resHost.innerHTML = `<span class="text-danger">Error: ${data.error}</span>`;
+        } else {
+            resHost.innerText = data.host;
+            resIps.innerText = data.ips && data.ips.length > 0 ? data.ips.join(', ') : 'None';
+            resReverse.innerText = data.reverse_name || '-';
+        }
+    } catch (err) {
+        resHost.innerText = 'Lookup failed.';
+    }
+}
 
 export async function refreshSystemInfo() {
     const ipDisplay = document.getElementById('sysPublicIp');

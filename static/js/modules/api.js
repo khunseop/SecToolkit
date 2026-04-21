@@ -23,6 +23,15 @@ export async function fetchPublicIp() {
     return data.ip;
 }
 
+export async function postDnsLookup(host) {
+    const response = await fetch('/api/dns-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host })
+    });
+    return await response.json();
+}
+
 export async function postTransform(type, data, action) {
     const response = await fetch(`/api/transform/${type}`, {
         method: 'POST',

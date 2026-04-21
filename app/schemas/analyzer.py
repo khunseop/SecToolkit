@@ -8,3 +8,12 @@ class ConvertRequest(BaseModel):
 
 class JsonRequest(BaseModel):
     data: str
+
+class DnsLookupRequest(BaseModel):
+    host: str
+
+class DnsLookupResponse(BaseModel):
+    host: str
+    ips: List[str]
+    reverse_name: str = "-"
+    error: Optional[str] = None

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from app.schemas.analyzer import ConvertRequest, JsonRequest
+from app.schemas.analyzer import ConvertRequest, JsonRequest, DnsLookupRequest, DnsLookupResponse
 from app.services.analyzer import AnalyzerService
 import json
 
@@ -12,6 +12,10 @@ async def get_units():
 @router.get("/system-proxy")
 async def get_system_proxy_api():
     return AnalyzerService.get_system_proxy_settings()
+
+@router.post("/dns-lookup", response_model=DnsLookupResponse)
+async def dns_lookup_api(request: DnsLookupRequest):
+    return AnalyzerService.resolve_dns(request.host)
 
 @router.post("/convert")
 async def convert_api(request: ConvertRequest):
