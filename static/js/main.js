@@ -28,11 +28,13 @@ async function loadPacGroups() {
 
 async function refreshSystemInfo() {
     const ipDisplay = document.getElementById('sysPublicIp');
-    const proxyDisplay = document.getElementById('sysProxyRaw');
+    const proxyRawDisplay = document.getElementById('sysProxyRaw');
+    const proxyFormattedDisplay = document.getElementById('sysProxyFormatted');
     const osDisplay = document.getElementById('sysOsInfo');
     
     if (ipDisplay) ipDisplay.innerText = 'Loading...';
-    if (proxyDisplay) proxyDisplay.innerText = 'Fetching settings...';
+    if (proxyRawDisplay) proxyRawDisplay.innerText = 'Fetching settings...';
+    if (proxyFormattedDisplay) proxyFormattedDisplay.innerHTML = '<div class="col-12 text-muted small">Fetching settings...</div>';
     
     // 1. Fetch Public IP
     try {
@@ -47,10 +49,32 @@ async function refreshSystemInfo() {
     try {
         const response = await fetch('/api/system-proxy');
         const data = await response.json();
-        if (proxyDisplay) proxyDisplay.innerText = data.raw || "No info";
+        
         if (osDisplay) osDisplay.innerText = data.system || "-";
+        if (proxyRawDisplay) proxyRawDisplay.innerText = data.raw || "No info";
+        
+        if (proxyFormattedDisplay) {
+            if (data.settings && Object.keys(data.settings).length > 0) {
+                proxyFormattedDisplay.innerHTML = Object.entries(data.settings).map(([label, val]) => {
+                    let colorClass = "bg-white";
+                    if (label === 'Proxy Enabled' && val === 1) colorClass = "bg-success-subtle";
+                    if (label === 'PAC URL' && val) colorClass = "bg-primary-subtle";
+                    
+                    return `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="p-3 border rounded h-100 ${colorClass}">
+                                <small class="text-muted d-block mb-1">${label}</small>
+                                <div class="fw-bold text-break" style="font-size: 0.9rem;">${val}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                proxyFormattedDisplay.innerHTML = `<div class="col-12"><div class="alert alert-info py-2 small mb-0">Detailed view not available for ${data.system}. Please check Raw Output below.</div></div>`;
+            }
+        }
     } catch (e) {
-        if (proxyDisplay) proxyDisplay.innerText = 'Failed to fetch proxy settings';
+        if (proxyRawDisplay) proxyRawDisplay.innerText = 'Failed to fetch proxy settings';
     }
 }
 

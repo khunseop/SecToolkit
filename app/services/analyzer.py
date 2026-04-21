@@ -12,15 +12,14 @@ class AnalyzerService:
                 # Use scutil on macOS to get detailed proxy settings
                 result = subprocess.run(['scutil', '--proxy'], capture_output=True, text=True)
                 if result.returncode == 0:
-                    return {"raw": result.stdout, "system": system}
+                    return {"raw": result.stdout, "system": system, "settings": {}} # macOS is complex, keep raw
             elif system == "Windows":
                 # Detailed proxy settings from Windows Registry
                 try:
                     import winreg
                     registry_path = r'Software\Microsoft\Windows\CurrentVersion\Internet Settings'
                     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, registry_path) as key:
-                        settings = []
-                        # List of interesting values to check
+                        settings_dict = {}
                         targets = [
                             ('ProxyEnable', 'Proxy Enabled'),
                             ('ProxyServer', 'Proxy Server'),
@@ -31,20 +30,22 @@ class AnalyzerService:
                         for value_name, label in targets:
                             try:
                                 val, _ = winreg.QueryValueEx(key, value_name)
-                                settings.append(f"{label}: {val}")
+                                settings_dict[label] = val
                             except FileNotFoundError:
                                 continue
                         
-                        if not settings:
-                            return {"raw": "No proxy settings found in Windows Registry.", "system": system}
-                        return {"raw": "\n".join(settings), "system": system}
+                        return {
+                            "raw": "\n".join([f"{k}: {v}" for k, v in settings_dict.items()]),
+                            "system": system,
+                            "settings": settings_dict
+                        }
                 except Exception as reg_err:
                     import urllib.request
-                    return {"raw": f"Registry Error: {str(reg_err)}\nFallback Proxies: {str(urllib.request.getproxies())}", "system": system}
+                    return {"raw": f"Registry Error: {str(reg_err)}", "system": system, "settings": {}}
             
-            return {"raw": f"System proxy detection not fully supported for {system}.", "system": system}
+            return {"raw": f"Detection not supported for {system}.", "system": system, "settings": {}}
         except Exception as e:
-            return {"error": str(e), "system": system}
+            return {"error": str(e), "system": system, "settings": {}}
 
     # 단위 변환을 위한 기준 값 (Base Unit: Data-Byte, Speed-bps, Time-Second)
     CONVERSION_MAP = {
