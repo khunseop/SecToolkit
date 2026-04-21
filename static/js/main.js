@@ -3,6 +3,7 @@ let pacGroups = [];
 let selectedPacGroupIdx = null;
 
 async function loadPacGroups() {
+    fetchPublicIp();
     try {
         const response = await fetch('/api/pac-groups');
         pacGroups = await response.json();
@@ -22,6 +23,20 @@ async function loadPacGroups() {
         updateGroupList();
     } catch (e) {
         console.error("Failed to load PAC groups", e);
+    }
+}
+
+async function fetchPublicIp() {
+    const display = document.getElementById('publicIpDisplay');
+    if (!display) return;
+    display.innerText = 'Loading...';
+    try {
+        const response = await fetch('https://api64.ipify.org?format=json');
+        const data = await response.json();
+        display.innerText = data.ip;
+    } catch (e) {
+        display.innerText = 'Failed to fetch IP';
+        console.error("Public IP fetch error:", e);
     }
 }
 
