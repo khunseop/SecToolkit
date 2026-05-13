@@ -1,4 +1,4 @@
-import { postTransform, postAnalyzeText } from './api.js';
+import { postTransform, postAnalyzeText, postIpToSql } from './api.js';
 import { copyTextToClipboard } from './ui.js';
 
 export async function transform(type, action) {
@@ -6,6 +6,20 @@ export async function transform(type, action) {
     if(!input) return;
     const result = await postTransform(type, input, action);
     document.getElementById(`${type}Output`).value = result.result || result.error;
+}
+
+export async function transformIpToSql() {
+    const input = document.getElementById('iptosqlInput').value;
+    if(!input) return;
+    
+    const result = await postIpToSql(input);
+    if (result.error) {
+        alert(result.error);
+        return;
+    }
+    
+    document.getElementById('iptosqlPatterns').value = result.patterns.join('\n');
+    document.getElementById('iptosqlSql').value = result.sql_where;
 }
 
 export function copyAnalysisReport() {

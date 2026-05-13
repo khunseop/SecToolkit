@@ -1,5 +1,5 @@
 import { switchCategory, showTool, copyToClipboard, copyTextToClipboard } from './modules/ui.js';
-import { transform, copyAnalysisReport, initTextCounter } from './modules/transformer.js';
+import { transform, transformIpToSql, copyAnalysisReport, initTextCounter } from './modules/transformer.js';
 import { initAnalyzer, loadUnits, doConvert, beautifyJson, uploadHar } from './modules/analyzer.js';
 import { initPac, savePacGroup, selectPacGroup, deletePacGroup, testProdPac, comparePac, renderDiff, copyFullReport, searchInPac } from './modules/pac.js';
 import { refreshSystemInfo } from './modules/system.js';
@@ -12,6 +12,7 @@ window.copyToClipboard = copyToClipboard;
 window.copyTextToClipboard = copyTextToClipboard;
 
 window.transform = transform;
+window.transformIpToSql = transformIpToSql;
 window.copyAnalysisReport = copyAnalysisReport;
 
 window.loadUnits = loadUnits;

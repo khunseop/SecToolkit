@@ -1,6 +1,7 @@
 import urllib.parse
 import base64
 import re
+import ipaddress
 
 class TransformerService:
     @staticmethod
@@ -22,6 +23,55 @@ class TransformerService:
                 return base64.b64decode(data).decode('utf-8')
         except Exception as e:
             return f"Error: {str(e)}"
+
+    @staticmethod
+    def ip_to_sql_transform(raw_text: str) -> dict:
+        input_lines = [line.strip() for line in raw_text.strip().split('\n') if line.strip()]
+        final_patterns = set()
+
+        for item in input_lines:
+            try:
+                networks = []
+                if '-' in item:
+                    # 1. IP Range 처리
+                    start_ip, end_ip = [ip.strip() for ip in item.split('-')]
+                    networks = list(ipaddress.summarize_address_range(
+                        ipaddress.IPv4Address(start_ip), 
+                        ipaddress.IPv4Address(end_ip)
+                    ))
+                else:
+                    # 2. CIDR 처리
+                    networks = [ipaddress.IPv4Network(item, strict=False)]
+
+                for net in networks:
+                    prefix = net.prefixlen
+                    # 8, 16, 24비트 단위 케이스 (단, /32는 /24 패턴으로 취급하기 위해 제외)
+                    if prefix in [8, 16, 24]:
+                        octet_count = prefix // 8
+                        parts = str(net.network_address).split('.')
+                        final_patterns.add(".".join(parts[:octet_count]) + ".%")
+                    else:
+                        # 옥텟 단위가 아닐 경우 (예: /23, /22)
+                        # 하위 24비트(/24) 단위 패턴들로 쪼개서 정확도 유지
+                        if prefix < 24:
+                            for sub_net in net.subnets(new_prefix=24):
+                                parts = str(sub_net.network_address).split('.')
+                                final_patterns.add(f"{parts[0]}.{parts[1]}.{parts[2]}.%")
+                        else:
+                            # /25 ~ /32는 LIKE로 표현 시 오탐 가능성이 커서 최소 /24 패턴으로 포함
+                            parts = str(net.network_address).split('.')
+                            final_patterns.add(f"{parts[0]}.{parts[1]}.{parts[2]}.%")
+            except Exception:
+                continue
+
+        patterns = sorted(list(final_patterns))
+        column_name = "ip_address"
+        sql_where = " OR ".join([f"{column_name} LIKE '{p}'" for p in patterns])
+        
+        return {
+            "patterns": patterns,
+            "sql_where": f"WHERE {sql_where}" if sql_where else ""
+        }
 
     @staticmethod
     def analyze_text(text: str, encoding: str) -> dict:

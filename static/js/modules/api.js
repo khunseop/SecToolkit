@@ -46,6 +46,15 @@ export async function postTransform(type, data, action) {
     return await response.json();
 }
 
+export async function postIpToSql(data) {
+    const response = await fetch('/api/transform/iptosql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+    });
+    return await response.json();
+}
+
 export async function postAnalyzeText(text, encoding) {
     const response = await fetch('/api/analyze-text', {
         method: 'POST',

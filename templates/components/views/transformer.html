@@ -60,3 +60,28 @@
         </div>
     </div>
 </div>
+
+<!-- IP to SQL LIKE Tool -->
+<div id="view-iptosql" class="content-section">
+    <div class="tool-card">
+        <h4 class="fw-bold">IP to SQL LIKE Converter</h4>
+        <p class="text-muted small">IP 대역 리스트를 SQL LIKE 패턴들로 변환 및 최적화합니다.</p>
+        
+        <label class="small fw-bold mb-1">Raw IP / CIDR / Range</label>
+        <textarea class="form-control mb-3" id="iptosqlInput" rows="5" placeholder="예:&#10;192.168.0.1&#10;10.0.0.0/24&#10;172.16.0.1 - 172.16.0.255"></textarea>
+        
+        <button class="btn btn-primary btn-sm w-100 mb-4" onclick="transformIpToSql()">변환하기</button>
+        
+        <div class="mb-3">
+            <label class="small fw-bold mb-1">Generated LIKE Patterns</label>
+            <textarea class="form-control mb-2" id="iptosqlPatterns" rows="4" readonly></textarea>
+            <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('iptosqlPatterns')">패턴 복사</button>
+        </div>
+        
+        <div class="mb-0">
+            <label class="small fw-bold mb-1">SQL WHERE Clause</label>
+            <textarea class="form-control mb-2" id="iptosqlSql" rows="3" readonly></textarea>
+            <button class="btn btn-outline-secondary btn-sm w-100" onclick="copyToClipboard('iptosqlSql')">SQL 복사</button>
+        </div>
+    </div>
+</div>
