@@ -87,6 +87,15 @@ export async function postBeautifyJson(data) {
     return await response.json();
 }
 
+export async function postIpIntersect(listA, listB) {
+    const response = await fetch('/api/ip-intersect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ list_a: listA, list_b: listB })
+    });
+    return await response.json();
+}
+
 export async function postTestPac(pacUrl, targetUrl) {
     const response = await fetch('/api/test-pac', {
         method: 'POST',

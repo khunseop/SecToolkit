@@ -1,6 +1,6 @@
 import { switchCategory, showTool, copyToClipboard, copyTextToClipboard } from './modules/ui.js';
 import { transform, transformIpToSql, copyAnalysisReport, initTextCounter } from './modules/transformer.js';
-import { initAnalyzer, loadUnits, doConvert, beautifyJson, uploadHar } from './modules/analyzer.js';
+import { initAnalyzer, loadUnits, doConvert, beautifyJson, uploadHar, findIpIntersections } from './modules/analyzer.js';
 import { initPac, savePacGroup, selectPacGroup, deletePacGroup, testProdPac, comparePac, renderDiff, copyFullReport, searchInPac } from './modules/pac.js';
 import { refreshSystemInfo } from './modules/system.js';
 import { doDnsLookup, refreshDnsInfo, initDns } from './modules/dns.js';
@@ -19,6 +19,7 @@ window.loadUnits = loadUnits;
 window.doConvert = doConvert;
 window.beautifyJson = beautifyJson;
 window.uploadHar = uploadHar;
+window.findIpIntersections = findIpIntersections;
 
 window.savePacGroup = savePacGroup;
 window.selectPacGroup = selectPacGroup;

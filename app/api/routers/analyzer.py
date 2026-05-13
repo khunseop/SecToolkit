@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from app.schemas.analyzer import ConvertRequest, JsonRequest, DnsLookupRequest, DnsLookupResponse
+from app.schemas.analyzer import ConvertRequest, JsonRequest, DnsLookupRequest, DnsLookupResponse, IpIntersectRequest
 from app.services.analyzer import AnalyzerService
 import json
 
@@ -41,3 +41,7 @@ async def extract_har_api(file: UploadFile = File(...)):
         return {"results": result}
     except Exception as e:
         return {"error": str(e)}
+
+@router.post("/ip-intersect")
+async def ip_intersect_api(request: IpIntersectRequest):
+    return AnalyzerService.find_ip_intersections(request.list_a, request.list_b)

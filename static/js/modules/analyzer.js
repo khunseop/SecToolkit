@@ -1,4 +1,4 @@
-import { fetchUnits, postConvert, postBeautifyJson } from './api.js';
+import { fetchUnits, postConvert, postBeautifyJson, postIpIntersect } from './api.js';
 
 let unitMap = {};
 
@@ -6,6 +6,7 @@ export async function initAnalyzer() {
     try {
         unitMap = await fetchUnits();
         loadUnits();
+        initIpTools();
     } catch (e) {
         console.error("Failed to load units", e);
     }
@@ -83,4 +84,70 @@ export async function uploadHar() {
             resultsBody.innerHTML += `<tr><td><span class="badge bg-light text-dark border">${item.method}</span></td><td class="text-truncate" style="max-width:200px;">${item.url}</td><td class="text-truncate" style="max-width:150px;">${item.headers.Authorization}</td></tr>`;
         });
     }
+}
+
+export async function findIpIntersections() {
+    const listA = document.getElementById('intersectInputA').value;
+    const listB = document.getElementById('intersectInputB').value;
+    
+    if(!listA || !listB) {
+        alert("Set A와 Set B를 모두 입력해 주세요.");
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('intersectResults');
+    resultsDiv.innerHTML = '<div class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary"></div><br><small class="text-muted">비교 중...</small></div>';
+    
+    try {
+        const data = await postIpIntersect(listA, listB);
+        const matches = data.matches || [];
+        
+        document.getElementById('intersectCount').innerText = `${matches.length} matches`;
+        
+        if (matches.length === 0) {
+            resultsDiv.innerHTML = '<div class="text-center text-muted py-5 mt-5"><small>겹치는 대역이 없습니다.</small></div>';
+            document.getElementById('intersectResultsText').value = "";
+            document.getElementById('btnCopyIntersect').disabled = true;
+            return;
+        }
+        
+        let html = '';
+        let textResults = '';
+        
+        matches.forEach(m => {
+            html += `
+                <div class="card mb-2 border-0 shadow-sm">
+                    <div class="card-body p-2 small">
+                        <div class="fw-bold text-primary mb-1">${m.overlap}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">
+                            <span class="badge bg-light text-dark border-0">A</span> ${m.source_a}<br>
+                            <span class="badge bg-light text-dark border-0">B</span> ${m.source_b}
+                        </div>
+                    </div>
+                </div>
+            `;
+            textResults += `[Match] Overlap: ${m.overlap} (A: ${m.source_a}, B: ${m.source_b})\n`;
+        });
+        
+        resultsDiv.innerHTML = html;
+        document.getElementById('intersectResultsText').value = textResults;
+        document.getElementById('btnCopyIntersect').disabled = false;
+        
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-danger small p-2">Error: ${error.message}</div>`;
+    }
+}
+
+export function initIpTools() {
+    const inputs = ['intersectInputA', 'intersectInputB'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        const badge = document.getElementById(id === 'intersectInputA' ? 'countA' : 'countB');
+        if (el && badge) {
+            el.addEventListener('input', () => {
+                const lines = el.value.split('\n').filter(l => l.trim()).length;
+                badge.innerText = `${lines} lines`;
+            });
+        }
+    });
 }

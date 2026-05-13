@@ -1,6 +1,7 @@
 import json
 import subprocess
 import platform
+import ipaddress
 
 class AnalyzerService:
     @staticmethod
@@ -211,3 +212,46 @@ class AnalyzerService:
                 })
             return extracted
         except Exception: return []
+
+    @staticmethod
+    def find_ip_intersections(list_a: str, list_b: str) -> dict:
+        def parse_ips(raw_text):
+            lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+            parsed = []
+            for item in lines:
+                try:
+                    if '-' in item:
+                        start_ip, end_ip = [ip.strip() for ip in item.split('-')]
+                        start_int = int(ipaddress.IPv4Address(start_ip))
+                        end_int = int(ipaddress.IPv4Address(end_ip))
+                        parsed.append((start_int, end_int, item))
+                    else:
+                        net = ipaddress.IPv4Network(item, strict=False)
+                        start_int = int(net.network_address)
+                        end_int = int(net.broadcast_address)
+                        parsed.append((start_int, end_int, item))
+                except:
+                    continue
+            return parsed
+
+        ips_a = parse_ips(list_a)
+        ips_b = parse_ips(list_b)
+        matches = []
+
+        for start_a, end_a, orig_a in ips_a:
+            for start_b, end_b, orig_b in ips_b:
+                overlap_start = max(start_a, start_b)
+                overlap_end = min(end_a, end_b)
+                
+                if overlap_start <= overlap_end:
+                    overlap_str = f"{ipaddress.IPv4Address(overlap_start)}"
+                    if overlap_start != overlap_end:
+                        overlap_str += f" - {ipaddress.IPv4Address(overlap_end)}"
+                    
+                    matches.append({
+                        "source_a": orig_a,
+                        "source_b": orig_b,
+                        "overlap": overlap_str
+                    })
+
+        return {"matches": matches}

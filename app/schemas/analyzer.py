@@ -18,3 +18,7 @@ class DnsLookupResponse(BaseModel):
     ips: List[str]
     reverse_name: str = "-"
     error: Optional[str] = None
+
+class IpIntersectRequest(BaseModel):
+    list_a: str
+    list_b: str

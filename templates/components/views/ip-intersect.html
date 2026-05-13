@@ -1,0 +1,55 @@
+<!-- IP Intersection Finder -->
+<div id="view-ipintersect" class="content-section">
+    <div class="tool-card" style="max-width: 1200px;">
+        <h4 class="fw-bold mb-3">IP Intersection Finder</h4>
+        <p class="text-muted small mb-4">두 그룹의 IP 리스트를 비교하여 겹치는 대역을 찾아냅니다. (IP, CIDR, Range 지원)</p>
+        
+        <div class="row g-4 mb-4">
+            <!-- Set A -->
+            <div class="col-lg-4">
+                <div class="p-3 rounded bg-light border h-100">
+                    <label class="small fw-bold mb-2 d-flex justify-content-between">
+                        Set A (Source)
+                        <span class="badge bg-secondary" id="countA">0 lines</span>
+                    </label>
+                    <textarea class="form-control font-monospace" id="intersectInputA" rows="15" placeholder="10.0.0.0/24&#10;192.168.1.1-192.168.1.100"></textarea>
+                </div>
+            </div>
+            
+            <!-- Set B -->
+            <div class="col-lg-4">
+                <div class="p-3 rounded bg-light border h-100">
+                    <label class="small fw-bold mb-2 d-flex justify-content-between">
+                        Set B (Target)
+                        <span class="badge bg-secondary" id="countB">0 lines</span>
+                    </label>
+                    <textarea class="form-control font-monospace" id="intersectInputB" rows="15" placeholder="10.0.0.50&#10;192.168.1.0/24"></textarea>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div class="col-lg-4">
+                <div class="p-3 rounded bg-light border h-100 d-flex flex-column">
+                    <label class="small fw-bold mb-2 d-flex justify-content-between">
+                        Overlapping Results
+                        <span class="badge bg-primary" id="intersectCount">0 matches</span>
+                    </label>
+                    <div id="intersectResults" class="flex-grow-1 overflow-auto" style="max-height: 400px;">
+                        <div class="text-center text-muted py-5 mt-5">
+                            <small>비교 버튼을 눌러주세요</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm mt-3" onclick="copyToClipboard('intersectResultsText')" id="btnCopyIntersect" disabled>결과 텍스트 복사</button>
+                    <!-- Hidden textarea for copying results -->
+                    <textarea id="intersectResultsText" class="d-none"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button class="btn btn-primary px-5 py-2 fw-bold" onclick="findIpIntersections()">
+                Find Intersections
+            </button>
+        </div>
+    </div>
+</div>
