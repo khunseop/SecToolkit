@@ -1,0 +1,15 @@
+{
+    "vsys": "",
+    "disabled": false,
+    "rule_action": "allow",
+    "from_zone": "",
+    "source": "",
+    "source_user": "",
+    "to_zone": "",
+    "destination": "",
+    "service": "",
+    "application": "",
+    "description": "",
+    "log_end": "",
+    "log_setting": ""
+}

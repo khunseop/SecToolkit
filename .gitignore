@@ -11,3 +11,7 @@ Thumbs.db
 
 # VS Code
 .vscode/
+
+# Runtime data (auto-created per environment; see data/*.json.example for the shape)
+data/*.json
+!data/*.json.example

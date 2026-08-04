@@ -1,0 +1,7 @@
+[
+    {
+        "name": "Example Group",
+        "prod": "http://proxy.example.com/prod.pac",
+        "test": "http://proxy.example.com/test.pac"
+    }
+]
