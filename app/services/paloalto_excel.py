@@ -27,7 +27,7 @@ COLUMN_FIELD_MAP = [
 ]
 
 EXAMPLE_ROW = {
-    "작업유형": "create",
+    "작업유형": "set",
     "vsys": "vsys1",
     "rule_name": "ALLOW-WEB",
     "disabled": "FALSE",

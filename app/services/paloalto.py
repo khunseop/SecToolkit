@@ -76,16 +76,45 @@ class PaloAltoService:
             return f'vsys {vsys} rulebase security rules'
         return "rulebase security rules"
 
+    LIST_FIELDS = [
+        ("from_zone", "from"),
+        ("source", "source"),
+        ("source_user", "source-user"),
+        ("to_zone", "to"),
+        ("destination", "destination"),
+        ("service", "service"),
+        ("application", "application"),
+    ]
+
     @staticmethod
     def generate_command(request) -> dict:
         action = request.action
-        rule_name = PaloAltoService._quote_if_needed(request.rule_name.strip())
 
         if not request.rule_name.strip():
             return {"error": "Rule name is required."}
 
         if action == "delete":
-            return {"command": f'delete {PaloAltoService._delete_move_base(request.vsys)} "{request.rule_name.strip()}"'}
+            base = f'delete {PaloAltoService._delete_move_base(request.vsys)} "{request.rule_name.strip()}"'
+
+            set_fields = [
+                (field_name, keyword)
+                for field_name, keyword in PaloAltoService.LIST_FIELDS
+                if (getattr(request, field_name) or "").strip()
+            ]
+
+            if not set_fields:
+                return {"command": base}
+
+            if len(set_fields) > 1:
+                return {"error": "삭제 시 한 번에 하나의 필드만 지정할 수 있습니다."}
+
+            field_name, keyword = set_fields[0]
+            raw_value = getattr(request, field_name)
+            items = [v.strip() for v in raw_value.replace(",", "\n").split("\n") if v.strip()]
+            if len(items) != 1:
+                return {"error": "삭제 시 값은 하나만 입력하세요."}
+
+            return {"command": f'{base} {keyword} "{items[0]}"'}
 
         if action == "move":
             if request.move_position not in ("top", "bottom", "before", "after"):
@@ -97,7 +126,7 @@ class PaloAltoService:
                 base += f' "{request.anchor_rule.strip()}"'
             return {"command": base}
 
-        if action in ("create", "modify"):
+        if action == "set":
             parts = [f'{PaloAltoService._rule_base(request.vsys)} "{request.rule_name.strip()}"']
 
             if request.disabled:
@@ -106,16 +135,7 @@ class PaloAltoService:
             if request.rule_action:
                 parts.append(f"action {request.rule_action}")
 
-            list_fields = [
-                ("from_zone", "from"),
-                ("source", "source"),
-                ("source_user", "source-user"),
-                ("to_zone", "to"),
-                ("destination", "destination"),
-                ("service", "service"),
-                ("application", "application"),
-            ]
-            for field_name, keyword in list_fields:
+            for field_name, keyword in PaloAltoService.LIST_FIELDS:
                 formatted = PaloAltoService._format_list_value(getattr(request, field_name) or "")
                 if formatted:
                     parts.append(f"{keyword} {formatted}")

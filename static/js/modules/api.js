@@ -96,15 +96,6 @@ export async function postIpIntersect(listA, listB) {
     return await response.json();
 }
 
-export async function postPaloAltoGenerate(payload) {
-    const response = await fetch('/api/paloalto/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-    return await response.json();
-}
-
 export async function fetchPaloAltoDefaults() {
     const response = await fetch('/api/paloalto/defaults');
     return await response.json();

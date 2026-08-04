@@ -9,10 +9,6 @@ from app.services.paloalto_excel import build_template_bytes, parse_uploaded_exc
 
 router = APIRouter(tags=["PaloAlto"])
 
-@router.post("/paloalto/generate")
-async def generate_paloalto_command_api(request: PolicyRuleRequest):
-    return PaloAltoService.generate_command(request)
-
 @router.get("/paloalto/defaults")
 async def get_paloalto_defaults_api():
     return PaloAltoService.get_defaults()
