@@ -1,0 +1,133 @@
+<!-- PAN-OS Security Policy CLI Generator -->
+<div id="view-paloalto" class="content-section">
+    <div class="tool-card" style="max-width: 1200px;">
+        <h4 class="fw-bold mb-3">PA Policy CLI Generator</h4>
+        <p class="text-muted small mb-4">팔로알토 방화벽 보안 정책(security rule) 생성/수정/삭제/이동을 위한 PAN-OS CLI 명령어를 생성합니다.</p>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <label class="small fw-bold mb-1">Action</label>
+                <select class="form-select" id="paAction" onchange="updatePaFormVisibility()">
+                    <option value="create">Create</option>
+                    <option value="modify">Modify</option>
+                    <option value="delete">Delete</option>
+                    <option value="move">Move</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="small fw-bold mb-1">vsys (옵션)</label>
+                <input type="text" class="form-control" id="paVsys" placeholder="vsys1">
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold mb-1">Rule Name</label>
+                <input type="text" class="form-control" id="paRuleName" placeholder="RULE-NAME">
+            </div>
+        </div>
+
+        <div id="paCreateFields">
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="small fw-bold mb-1">Action (allow/deny)</label>
+                    <select class="form-select" id="paRuleAction">
+                        <option value="allow">allow</option>
+                        <option value="deny">deny</option>
+                        <option value="drop">drop</option>
+                        <option value="reset-client">reset-client</option>
+                        <option value="reset-server">reset-server</option>
+                        <option value="reset-both">reset-both</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold mb-1">log-end</label>
+                    <select class="form-select" id="paLogEnd">
+                        <option value="">(unset)</option>
+                        <option value="yes">yes</option>
+                        <option value="no">no</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold mb-1">log-setting</label>
+                    <input type="text" class="form-control" id="paLogSetting" placeholder="log-profile-name">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="paDisabled">
+                        <label class="form-check-label small" for="paDisabled">disabled</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">from (zone)</label>
+                    <textarea class="form-control font-monospace" id="paFromZone" rows="2" placeholder="trust"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">source</label>
+                    <textarea class="form-control font-monospace" id="paSource" rows="2" placeholder="10.0.0.0/24"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">source-user</label>
+                    <textarea class="form-control font-monospace" id="paSourceUser" rows="2" placeholder="any"></textarea>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">to (zone)</label>
+                    <textarea class="form-control font-monospace" id="paToZone" rows="2" placeholder="untrust"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">destination</label>
+                    <textarea class="form-control font-monospace" id="paDestination" rows="2" placeholder="192.168.1.100"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">service</label>
+                    <textarea class="form-control font-monospace" id="paService" rows="2" placeholder="application-default"></textarea>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="small fw-bold mb-1">application</label>
+                    <textarea class="form-control font-monospace" id="paApplication" rows="2" placeholder="ssl"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="small fw-bold mb-1">description</label>
+                    <textarea class="form-control font-monospace" id="paDescription" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="paMoveFields" class="d-none">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="small fw-bold mb-1">Position</label>
+                    <select class="form-select" id="paMovePosition" onchange="updatePaFormVisibility()">
+                        <option value="top">top</option>
+                        <option value="bottom">bottom</option>
+                        <option value="before">before</option>
+                        <option value="after">after</option>
+                    </select>
+                </div>
+                <div class="col-md-8" id="paAnchorField">
+                    <label class="small fw-bold mb-1">Anchor Rule Name</label>
+                    <input type="text" class="form-control" id="paAnchorRule" placeholder="OTHER-RULE-NAME">
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary px-4 fw-bold" onclick="generatePaCommand()">명령어 생성</button>
+            <button class="btn btn-outline-secondary" id="paSaveDefaultsBtn" onclick="savePaDefaults()">현재 옵션값을 기본값으로 저장</button>
+        </div>
+
+        <div>
+            <label class="small fw-bold mb-1 d-flex justify-content-between">
+                Generated Command
+                <button class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard('paResult')">복사</button>
+            </label>
+            <textarea class="form-control font-monospace" id="paResult" rows="4" readonly></textarea>
+        </div>
+    </div>
+</div>

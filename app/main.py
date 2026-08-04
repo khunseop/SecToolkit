@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import os
 
-from app.api.routers import transformer, analyzer, pac
+from app.api.routers import transformer, analyzer, pac, paloalto
 
 app = FastAPI(title="SecToolkit")
 
@@ -34,6 +34,7 @@ async def index(request: Request):
 app.include_router(transformer.router, prefix="/api")
 app.include_router(analyzer.router, prefix="/api")
 app.include_router(pac.router, prefix="/api")
+app.include_router(paloalto.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
