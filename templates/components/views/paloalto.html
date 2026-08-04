@@ -130,4 +130,119 @@
             <textarea class="form-control font-monospace" id="paResult" rows="4" readonly></textarea>
         </div>
     </div>
+
+    <!-- Bulk Generation: Grid input -->
+    <div class="tool-card mt-4" style="max-width: 1200px;">
+        <h4 class="fw-bold mb-1">대량 생성 - 그리드 입력</h4>
+        <p class="text-muted small mb-3">행을 추가해 여러 정책을 한 번에 정의하고 명령어를 일괄 생성합니다. 여러 값이 필요한 항목은 콤마(,)로 구분해 입력하세요.</p>
+
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle" style="min-width: 1900px;">
+                <thead>
+                    <tr class="small text-muted">
+                        <th style="width: 90px;">작업유형</th>
+                        <th style="width: 90px;">vsys</th>
+                        <th style="width: 130px;">rule_name</th>
+                        <th style="width: 70px;">disabled</th>
+                        <th style="width: 110px;">action</th>
+                        <th style="width: 120px;">from</th>
+                        <th style="width: 140px;">source</th>
+                        <th style="width: 120px;">source-user</th>
+                        <th style="width: 120px;">to</th>
+                        <th style="width: 140px;">destination</th>
+                        <th style="width: 140px;">service</th>
+                        <th style="width: 140px;">application</th>
+                        <th style="width: 160px;">description</th>
+                        <th style="width: 90px;">log-end</th>
+                        <th style="width: 120px;">log-setting</th>
+                        <th style="width: 100px;">move_position</th>
+                        <th style="width: 140px;">anchor_rule</th>
+                        <th style="width: 40px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="paGridBody"></tbody>
+            </table>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-outline-secondary btn-sm" onclick="addGridRow()">+ 행 추가</button>
+            <button class="btn btn-primary btn-sm px-3 fw-bold" onclick="generateBulkFromGrid()">그리드로 일괄 생성</button>
+        </div>
+    </div>
+
+    <!-- Bulk Generation: Excel upload -->
+    <div class="tool-card mt-4" style="max-width: 1200px;">
+        <h4 class="fw-bold mb-1">대량 생성 - 엑셀 업로드</h4>
+        <p class="text-muted small mb-3">템플릿을 다운로드해 정책 정보를 채운 뒤 업로드하면 명령어를 일괄 생성합니다.</p>
+
+        <div class="d-flex gap-2 align-items-center mb-3">
+            <a class="btn btn-outline-secondary btn-sm" href="/api/paloalto/template">템플릿 다운로드</a>
+            <input type="file" class="form-control form-control-sm" id="paExcelFile" accept=".xlsx" style="max-width: 320px;">
+            <button class="btn btn-primary btn-sm px-3 fw-bold" onclick="uploadExcelAndGenerate()">업로드 및 생성</button>
+        </div>
+    </div>
+
+    <!-- Bulk result -->
+    <div class="tool-card mt-4" style="max-width: 1200px;">
+        <label class="small fw-bold mb-1 d-flex justify-content-between">
+            Bulk Generated Commands
+            <button class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard('paBulkResult')">복사</button>
+        </label>
+        <textarea class="form-control font-monospace" id="paBulkResult" rows="10" readonly></textarea>
+    </div>
 </div>
+
+<template id="paGridRowTemplate">
+    <tr>
+        <td>
+            <select class="form-select form-select-sm pa-grid-action">
+                <option value="create">create</option>
+                <option value="modify">modify</option>
+                <option value="delete">delete</option>
+                <option value="move">move</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-vsys"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-rule_name"></td>
+        <td class="text-center"><input type="checkbox" class="form-check-input pa-grid-disabled"></td>
+        <td>
+            <select class="form-select form-select-sm pa-grid-rule_action">
+                <option value="allow">allow</option>
+                <option value="deny">deny</option>
+                <option value="drop">drop</option>
+                <option value="reset-client">reset-client</option>
+                <option value="reset-server">reset-server</option>
+                <option value="reset-both">reset-both</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-from_zone"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-source"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-source_user"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-to_zone"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-destination"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-service"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-application"></td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-description"></td>
+        <td>
+            <select class="form-select form-select-sm pa-grid-log_end">
+                <option value="">(unset)</option>
+                <option value="yes">yes</option>
+                <option value="no">no</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-log_setting"></td>
+        <td>
+            <select class="form-select form-select-sm pa-grid-move_position">
+                <option value="">-</option>
+                <option value="top">top</option>
+                <option value="bottom">bottom</option>
+                <option value="before">before</option>
+                <option value="after">after</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control form-control-sm pa-grid-anchor_rule"></td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">×</button>
+        </td>
+    </tr>
+</template>

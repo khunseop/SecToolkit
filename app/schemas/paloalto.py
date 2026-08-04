@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class PolicyRuleRequest(BaseModel):
     action: str  # create | modify | delete | move
@@ -19,6 +19,9 @@ class PolicyRuleRequest(BaseModel):
     log_setting: Optional[str] = ""
     move_position: Optional[str] = ""  # top | bottom | before | after
     anchor_rule: Optional[str] = ""
+
+class BulkGenerateRequest(BaseModel):
+    rows: List[PolicyRuleRequest]
 
 class PolicyDefaults(BaseModel):
     vsys: Optional[str] = ""

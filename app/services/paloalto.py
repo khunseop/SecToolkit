@@ -132,3 +132,15 @@ class PaloAltoService:
             return {"command": " ".join(parts)}
 
         return {"error": f"Unknown action: {action}"}
+
+    @staticmethod
+    def generate_bulk(requests: list) -> dict:
+        results = []
+        for index, request in enumerate(requests):
+            outcome = PaloAltoService.generate_command(request)
+            results.append({
+                "row_index": index,
+                "command": outcome.get("command"),
+                "error": outcome.get("error"),
+            })
+        return {"results": results}

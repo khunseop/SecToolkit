@@ -119,6 +119,25 @@ export async function postPaloAltoDefaults(defaults) {
     return await response.json();
 }
 
+export async function postPaloAltoGenerateBulk(rows) {
+    const response = await fetch('/api/paloalto/generate-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows })
+    });
+    return await response.json();
+}
+
+export async function postPaloAltoGenerateBulkExcel(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch('/api/paloalto/generate-bulk-excel', {
+        method: 'POST',
+        body: formData
+    });
+    return await response.json();
+}
+
 export async function postTestPac(pacUrl, targetUrl) {
     const response = await fetch('/api/test-pac', {
         method: 'POST',

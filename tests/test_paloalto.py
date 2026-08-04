@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from app.services.paloalto_excel import rows_from_sheet_values, build_template_bytes, COLUMN_FIELD_MAP
 
 client = TestClient(app)
 
@@ -111,3 +112,56 @@ def test_defaults_roundtrip():
     data = get_response.json()
     assert data["rule_action"] == "deny"
     assert data["vsys"] == "vsys1"
+
+def test_generate_bulk_mixed_success_and_error():
+    response = client.post(
+        "/api/paloalto/generate-bulk",
+        json={
+            "rows": [
+                {"action": "create", "rule_name": "RULE1", "source": "10.0.0.1"},
+                {"action": "delete", "rule_name": ""},
+                {"action": "move", "rule_name": "RULE2", "move_position": "top"}
+            ]
+        }
+    )
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert len(results) == 3
+    assert results[0]["error"] is None
+    assert 'source 10.0.0.1' in results[0]["command"]
+    assert results[1]["error"] is not None
+    assert results[2]["command"] == 'move rulebase security rules "RULE2" top'
+
+def test_template_download():
+    response = client.get("/api/paloalto/template")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/vnd.openxmlformats")
+    assert len(response.content) > 0
+
+def test_template_bytes_are_valid_workbook():
+    import openpyxl
+    import io
+    content = build_template_bytes()
+    wb = openpyxl.load_workbook(io.BytesIO(content))
+    ws = wb.active
+    headers = [cell.value for cell in ws[1]]
+    assert headers == [header for header, _ in COLUMN_FIELD_MAP]
+
+def test_rows_from_sheet_values():
+    headers = [header for header, _ in COLUMN_FIELD_MAP]
+    data_row = ["create", "vsys1", "RULE1", "FALSE", "allow", "trust", "10.0.0.0/24",
+                "any", "untrust", "any", "application-default", "ssl,web-browsing",
+                "desc", "yes", "default", "", ""]
+    blank_row = [None] * len(headers)
+    rows = rows_from_sheet_values([headers, data_row, blank_row])
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["action"] == "create"
+    assert row["rule_name"] == "RULE1"
+    assert row["disabled"] is False
+    assert row["rule_action"] == "allow"
+    assert row["application"] == "ssl,web-browsing"
+
+def test_rows_from_sheet_values_empty():
+    assert rows_from_sheet_values([]) == []
+    assert rows_from_sheet_values([["action"]]) == []

@@ -1,4 +1,11 @@
-import { postPaloAltoGenerate, fetchPaloAltoDefaults, postPaloAltoDefaults } from './api.js';
+import { postPaloAltoGenerate, fetchPaloAltoDefaults, postPaloAltoDefaults, postPaloAltoGenerateBulk, postPaloAltoGenerateBulkExcel } from './api.js';
+
+const GRID_FIELDS = [
+    'action', 'vsys', 'rule_name', 'disabled', 'rule_action',
+    'from_zone', 'source', 'source_user', 'to_zone', 'destination',
+    'service', 'application', 'description', 'log_end', 'log_setting',
+    'move_position', 'anchor_rule'
+];
 
 function getOptionFields() {
     return {
@@ -79,4 +86,60 @@ export async function initPaloAlto() {
     const defaults = await fetchPaloAltoDefaults();
     applyOptionFields(defaults);
     updatePaFormVisibility();
+    addGridRow();
+}
+
+export function addGridRow() {
+    const template = document.getElementById('paGridRowTemplate');
+    const row = template.content.firstElementChild.cloneNode(true);
+    document.getElementById('paGridBody').appendChild(row);
+}
+
+function readGridRow(rowEl) {
+    const row = {};
+    for (const field of GRID_FIELDS) {
+        const el = rowEl.querySelector(`.pa-grid-${field}`);
+        if (!el) continue;
+        row[field] = el.type === 'checkbox' ? el.checked : el.value.trim();
+    }
+    return row;
+}
+
+function renderBulkResults(results) {
+    const lines = results.map(r => {
+        if (r.error) return `# ERROR (row ${r.row_index + 1}): ${r.error}`;
+        return r.command;
+    });
+    document.getElementById('paBulkResult').value = lines.join('\n');
+}
+
+export async function generateBulkFromGrid() {
+    const rowEls = document.querySelectorAll('#paGridBody tr');
+    const rows = Array.from(rowEls).map(readGridRow).filter(r => r.rule_name);
+    if (rows.length === 0) {
+        alert('최소 1개 이상의 rule_name을 입력하세요.');
+        return;
+    }
+    const result = await postPaloAltoGenerateBulk(rows);
+    if (result.error) {
+        document.getElementById('paBulkResult').value = `Error: ${result.error}`;
+        return;
+    }
+    renderBulkResults(result.results);
+}
+
+export async function uploadExcelAndGenerate() {
+    const fileInput = document.getElementById('paExcelFile');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('업로드할 엑셀 파일을 선택하세요.');
+        return;
+    }
+    document.getElementById('paBulkResult').value = '업로드 및 처리 중...';
+    const result = await postPaloAltoGenerateBulkExcel(file);
+    if (result.error) {
+        document.getElementById('paBulkResult').value = `Error: ${result.error}`;
+        return;
+    }
+    renderBulkResults(result.results);
 }

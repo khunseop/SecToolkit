@@ -1,0 +1,15 @@
+{
+    "vsys": "vsys1",
+    "disabled": false,
+    "rule_action": "deny",
+    "from_zone": "trust",
+    "source": "any",
+    "source_user": "any",
+    "to_zone": "untrust",
+    "destination": "any",
+    "service": "application-default",
+    "application": "any",
+    "description": "",
+    "log_end": "yes",
+    "log_setting": "default"
+}
