@@ -4,7 +4,7 @@ import { initAnalyzer, loadUnits, doConvert, beautifyJson, uploadHar, findIpInte
 import { initPac, savePacGroup, selectPacGroup, deletePacGroup, testProdPac, comparePac, renderDiff, copyFullReport, searchInPac } from './modules/pac.js';
 import { refreshSystemInfo } from './modules/system.js';
 import { doDnsLookup, refreshDnsInfo, initDns } from './modules/dns.js';
-import { savePaDefaults, initPaloAlto, addGridRow, generateBulkFromGrid, uploadExcelAndGenerate, applyDefaultsToAllRows, copyAllPaResults, addServiceRow, generateServiceBulk, copyAllServiceResults } from './modules/paloalto.js';
+import { savePaDefaults, initPaloAlto, addGridRow, generateBulkFromGrid, uploadExcelAndGenerate, applyDefaultsToAllRows, copyAllPaResults, addServiceRow, generateServiceBulk, copyAllServiceResults, fillServiceRowsFromPaste } from './modules/paloalto.js';
 
 // Expose to window for HTML onclick handlers (due to ES6 module scoping)
 window.switchCategory = switchCategory;
@@ -44,6 +44,7 @@ window.copyAllPaResults = copyAllPaResults;
 window.addServiceRow = addServiceRow;
 window.generateServiceBulk = generateServiceBulk;
 window.copyAllServiceResults = copyAllServiceResults;
+window.fillServiceRowsFromPaste = fillServiceRowsFromPaste;
 
 // Initialize modules
 document.addEventListener('DOMContentLoaded', () => {

@@ -278,6 +278,30 @@ export function addServiceRow() {
     return row;
 }
 
+// 엑셀에서 여러 행을 복사해 붙여넣으면(탭으로 구분) 한 줄씩 행으로 추가한다.
+// 3칸이면 name/protocol/port, 4칸이면 vsys/name/protocol/port로 인식한다.
+export function fillServiceRowsFromPaste() {
+    const textarea = document.getElementById('paServicePasteArea');
+    const lines = textarea.value.split(/\r?\n/).map(line => line.trim()).filter(line => line);
+    if (lines.length === 0) {
+        alert('붙여넣은 내용이 없습니다.');
+        return;
+    }
+    for (const line of lines) {
+        const cells = (line.includes('\t') ? line.split('\t') : line.split(',')).map(c => c.trim());
+        const [vsys, name, protocol, port] = cells.length >= 4
+            ? cells
+            : ['', cells[0] || '', cells[1] || '', cells[2] || ''];
+
+        const row = addServiceRow();
+        row.querySelector('.pa-svc-vsys').value = vsys;
+        row.querySelector('.pa-svc-name').value = name;
+        row.querySelector('.pa-svc-protocol').value = ['tcp', 'udp'].includes((protocol || '').toLowerCase()) ? protocol.toLowerCase() : 'tcp';
+        row.querySelector('.pa-svc-port').value = port;
+    }
+    textarea.value = '';
+}
+
 export async function generateServiceBulk() {
     document.querySelectorAll('#paServiceGridBody .pa-row-invalid').forEach(el => el.classList.remove('pa-row-invalid'));
     const rowEls = Array.from(document.querySelectorAll('#paServiceGridBody .pa-row'));
