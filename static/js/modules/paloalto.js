@@ -112,7 +112,10 @@ function renderBulkResults(results, containerId = 'paBulkResultList') {
     for (const r of results) {
         const isError = !!r.error;
         const item = document.createElement('div');
-        item.className = `pa-result-row d-flex align-items-center gap-2 px-2 py-1 rounded mb-1 ${isError ? 'pa-result-error' : 'pa-result-ok'}`;
+        item.className = `pa-result-row px-2 py-1 rounded mb-1 ${isError ? 'pa-result-error' : 'pa-result-ok'}`;
+
+        const line = document.createElement('div');
+        line.className = 'd-flex align-items-center gap-2';
 
         const badge = document.createElement('span');
         badge.className = `badge ${isError ? 'bg-danger' : 'bg-success'}`;
@@ -135,7 +138,19 @@ function renderBulkResults(results, containerId = 'paBulkResultList') {
         copyBtn.disabled = isError;
         copyBtn.addEventListener('click', () => copyTextToClipboard(r.command));
 
-        item.append(badge, rowNum, text, copyBtn);
+        line.append(badge, rowNum, text, copyBtn);
+        item.appendChild(line);
+
+        // 필드별 객체 개수를 보여줘서, 여러 행이 콤마로 잘 병합됐는지 눈으로 검증할 수 있게 한다
+        const countEntries = r.counts ? Object.entries(r.counts) : [];
+        if (!isError && countEntries.length > 0) {
+            const countsLine = document.createElement('div');
+            countsLine.className = 'small text-muted';
+            countsLine.style.marginLeft = '2.5rem';
+            countsLine.textContent = countEntries.map(([field, count]) => `${field} ${count}개`).join(' · ');
+            item.appendChild(countsLine);
+        }
+
         container.appendChild(item);
     }
 }

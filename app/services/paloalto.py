@@ -55,8 +55,12 @@ class PaloAltoService:
         return value
 
     @staticmethod
+    def _split_list_items(raw: str) -> list:
+        return [item.strip() for item in raw.replace(",", "\n").split("\n") if item.strip()]
+
+    @staticmethod
     def _format_list_value(raw: str) -> str:
-        items = [item.strip() for item in raw.replace(",", "\n").split("\n") if item.strip()]
+        items = PaloAltoService._split_list_items(raw)
         if not items:
             return ""
         quoted = [PaloAltoService._quote_if_needed(item) for item in items]
@@ -134,8 +138,13 @@ class PaloAltoService:
             if request.rule_action:
                 parts.append(f"action {request.rule_action}")
 
+            counts = {}
             for field_name, keyword in PaloAltoService.LIST_FIELDS:
-                formatted = PaloAltoService._format_list_value(getattr(request, field_name) or "")
+                raw_value = getattr(request, field_name) or ""
+                item_count = len(PaloAltoService._split_list_items(raw_value))
+                if item_count:
+                    counts[keyword] = item_count
+                formatted = PaloAltoService._format_list_value(raw_value)
                 if formatted:
                     parts.append(f"{keyword} {formatted}")
 
@@ -148,7 +157,7 @@ class PaloAltoService:
             if request.log_setting and request.log_setting.strip():
                 parts.append(f'log-setting "{request.log_setting.strip()}"')
 
-            return {"command": " ".join(parts)}
+            return {"command": " ".join(parts), "counts": counts}
 
         return {"error": f"Unknown action: {action}"}
 
@@ -161,6 +170,7 @@ class PaloAltoService:
                 "row_index": index,
                 "command": outcome.get("command"),
                 "error": outcome.get("error"),
+                "counts": outcome.get("counts"),
             })
         return {"results": results}
 

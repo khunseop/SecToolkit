@@ -36,6 +36,26 @@ def test_set_basic():
     assert result["error"] is None
     assert result["command"] == 'set rulebase security rules "RULE1" disabled no action allow'
 
+def test_set_returns_object_counts_per_field():
+    result = generate_one({
+        "action": "set",
+        "rule_name": "RULE1",
+        "source": "10.0.0.1,10.0.0.2,10.0.0.3",
+        "destination": "any",
+        "service": "TCP_80,TCP_443",
+    })
+    assert result["counts"] == {"source": 3, "destination": 1, "service": 2}
+
+def test_set_counts_omits_empty_fields():
+    result = generate_one({"action": "set", "rule_name": "RULE1"})
+    assert result["counts"] == {}
+
+def test_delete_and_move_have_no_counts():
+    result = generate_one({"action": "delete", "rule_name": "RULE1"})
+    assert result.get("counts") is None
+    result = generate_one({"action": "move", "rule_name": "RULE1", "move_position": "top"})
+    assert result.get("counts") is None
+
 def test_set_not_disabled_emits_disabled_no():
     result = generate_one({"action": "set", "rule_name": "RULE1", "disabled": False})
     assert "disabled no" in result["command"]

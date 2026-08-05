@@ -53,6 +53,11 @@ async def generate_paloalto_bulk_excel_api(file: UploadFile = File(...)):
             results.append({"row_index": index, "command": None, "error": f"Invalid row data: {str(e)}"})
             continue
         outcome = PaloAltoService.generate_command(request)
-        results.append({"row_index": index, "command": outcome.get("command"), "error": outcome.get("error")})
+        results.append({
+            "row_index": index,
+            "command": outcome.get("command"),
+            "error": outcome.get("error"),
+            "counts": outcome.get("counts"),
+        })
 
     return {"results": results}
