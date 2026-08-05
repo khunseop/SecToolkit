@@ -187,6 +187,38 @@ def test_rows_from_sheet_values_newline_multivalue():
     rows = rows_from_sheet_values([headers, data_row])
     assert rows[0]["source"] == "1.1.1.1\n2.2.2.2\n3.3.3.3"
 
+def test_rows_from_sheet_values_continuation_rows():
+    # rule_name이 빈 행은 바로 위 정책의 연속 행으로 취급되어 다중값 필드가 콤마로 이어붙는다
+    headers = [header for header, _ in COLUMN_FIELD_MAP]
+
+    rule_row = ["set", "", "Web_Access", "FALSE", "allow", "", "10.10.10.0/24", "", "",
+                "192.168.1.100", "TCP_80", "", "웹 서버 접근 허용", "", "", "", ""]
+    continuation_source = ["", "", "", "", "", "", "10.10.20.0/24", "", "", "", "", "", "", "", "", "", ""]
+    continuation_service = ["", "", "", "", "", "", "", "", "", "", "TCP_8080", "", "", "", "", "", ""]
+
+    rows = rows_from_sheet_values([headers, rule_row, continuation_source, continuation_service])
+    assert len(rows) == 1
+    merged = rows[0]
+    assert merged["rule_name"] == "Web_Access"
+    assert merged["source"] == "10.10.10.0/24,10.10.20.0/24"
+    assert merged["service"] == "TCP_80,TCP_8080"
+    assert merged["destination"] == "192.168.1.100"
+    assert merged["description"] == "웹 서버 접근 허용"
+
+def test_rows_from_sheet_values_leading_continuation_row_kept_as_error_row():
+    # 정책 없이 시작하는 빈 rule_name 행은 병합할 대상이 없으므로 그대로 별도 행으로 남는다
+    headers = [header for header, _ in COLUMN_FIELD_MAP]
+    orphan_row = ["set", "", "", "", "", "", "1.1.1.1", "", "", "", "", "", "", "", "", "", ""]
+    rows = rows_from_sheet_values([headers, orphan_row])
+    assert len(rows) == 1
+    assert rows[0]["rule_name"] == ""
+
+def test_rows_from_sheet_values_normalizes_rule_action_case():
+    headers = [header for header, _ in COLUMN_FIELD_MAP]
+    data_row = ["set", "", "RULE1", "FALSE", "Allow", "", "1.1.1.1", "", "", "", "", "", "", "", "", "", ""]
+    rows = rows_from_sheet_values([headers, data_row])
+    assert rows[0]["rule_action"] == "allow"
+
 def test_rows_from_sheet_values_empty():
     assert rows_from_sheet_values([]) == []
     assert rows_from_sheet_values([["action"]]) == []

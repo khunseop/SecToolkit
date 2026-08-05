@@ -46,7 +46,16 @@ EXAMPLE_ROW = {
     "anchor_rule": "",
 }
 
+# rule_name을 비워두면 바로 위 행과 같은 정책으로 취급되어, 이 행의 source/destination/service 등
+# 다중값 필드 값이 콤마로 이어붙여진다 (정책 하나를 여러 행에 걸쳐 입력하는 원본 포맷 지원용 예시)
+EXAMPLE_CONTINUATION_ROW = {
+    "source": "10.0.1.0/24",
+}
+
 _TRUE_VALUES = {"true", "yes", "y", "1"}
+
+# 여러 행에 걸쳐 입력된 값을 콤마로 이어붙일 수 있는 다중값 필드
+LIST_FIELDS = ["from_zone", "source", "source_user", "to_zone", "destination", "service", "application"]
 
 _excel_lock = threading.Lock()
 
@@ -58,6 +67,7 @@ def build_template_bytes() -> bytes:
     ws.title = "policies"
     ws.append(headers)
     ws.append([EXAMPLE_ROW.get(header, "") for header in headers])
+    ws.append([EXAMPLE_CONTINUATION_ROW.get(header, "") for header in headers])
 
     buffer = io.BytesIO()
     wb.save(buffer)
@@ -67,7 +77,12 @@ def build_template_bytes() -> bytes:
 def rows_from_sheet_values(values: list) -> list:
     """Pure conversion of a 2D sheet value grid (header row + data rows) into
     dicts keyed by PolicyRuleRequest field names. No xlwings/openpyxl dependency,
-    so this is unit-testable without Excel."""
+    so this is unit-testable without Excel.
+
+    rule_name이 빈 행은 바로 위의 정책이 이어지는 행("continuation row")으로 취급해서,
+    그 행에 값이 있는 다중값 필드(source/destination/service 등)만 콤마로 이어붙이고
+    별도 행으로 만들지 않는다. 정책 하나를 여러 행에 걸쳐 입력하는 원본 엑셀 포맷을
+    그대로 업로드할 수 있게 하기 위함이다."""
     if not values or len(values) < 2:
         return []
 
@@ -76,6 +91,7 @@ def rows_from_sheet_values(values: list) -> list:
     field_by_col = [header_to_field.get(header) for header in header_row]
 
     rows = []
+    current = None
     for raw_row in values[1:]:
         if raw_row is None or all(cell is None or str(cell).strip() == "" for cell in raw_row):
             continue
@@ -87,9 +103,23 @@ def rows_from_sheet_values(values: list) -> list:
             cell_value = raw_row[col_index]
             if field_name == "disabled":
                 row_dict[field_name] = str(cell_value).strip().lower() in _TRUE_VALUES if cell_value is not None else False
+            elif field_name == "rule_action":
+                # PAN-OS는 소문자만 허용하므로 "Allow"/"Deny"처럼 대문자로 입력해도 정규화한다
+                row_dict[field_name] = "" if cell_value is None else str(cell_value).strip().lower()
             else:
                 row_dict[field_name] = "" if cell_value is None else str(cell_value).strip()
-        rows.append(row_dict)
+
+        if not row_dict.get("rule_name", "").strip() and current is not None:
+            for field in LIST_FIELDS:
+                value = row_dict.get(field, "")
+                if not isinstance(value, str) or not value.strip():
+                    continue
+                existing = current.get(field, "")
+                current[field] = f"{existing},{value.strip()}" if existing else value.strip()
+            continue
+
+        current = row_dict
+        rows.append(current)
 
     return rows
 
