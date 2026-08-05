@@ -5,7 +5,7 @@ import io
 
 from app.schemas.paloalto import PolicyRuleRequest, PolicyDefaults, BulkGenerateRequest, ServiceBulkGenerateRequest
 from app.services.paloalto import PaloAltoService
-from app.services.paloalto_excel import build_template_bytes, parse_uploaded_excel
+from app.services.paloalto_excel import build_template_bytes, parse_uploaded_excel, apply_defaults
 
 router = APIRouter(tags=["PaloAlto"])
 
@@ -42,6 +42,8 @@ async def generate_paloalto_bulk_excel_api(file: UploadFile = File(...)):
         rows = await run_in_threadpool(parse_uploaded_excel, content)
     except Exception as e:
         return {"error": f"Failed to read Excel file: {str(e)}"}
+
+    rows = apply_defaults(rows, PaloAltoService.get_defaults())
 
     results = []
     for index, row in enumerate(rows):

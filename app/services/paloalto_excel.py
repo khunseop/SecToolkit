@@ -57,6 +57,13 @@ _TRUE_VALUES = {"true", "yes", "y", "1"}
 # 여러 행에 걸쳐 입력된 값을 콤마로 이어붙일 수 있는 다중값 필드
 LIST_FIELDS = ["from_zone", "source", "source_user", "to_zone", "destination", "service", "application"]
 
+# 엑셀에 컬럼 자체가 없거나 셀이 비어 있을 때 저장된 기본값으로 채울 필드 (그리드의 "기본값"과 동일)
+DEFAULT_FILLABLE_FIELDS = [
+    "vsys", "disabled", "rule_action", "from_zone", "source", "source_user",
+    "to_zone", "destination", "service", "application", "description",
+    "log_end", "log_setting",
+]
+
 _excel_lock = threading.Lock()
 
 
@@ -122,6 +129,24 @@ def rows_from_sheet_values(values: list) -> list:
         rows.append(current)
 
     return rows
+
+
+def apply_defaults(rows: list, defaults: dict) -> list:
+    """엑셀에 컬럼이 아예 없거나 셀이 비어 있는 필드를 저장된 기본값(그리드의 "1행 값을
+    기본값으로 저장"과 동일한 값)으로 채운다. 값이 이미 채워진 필드(연속 행 병합 결과 포함)는
+    건드리지 않는다. 작업유형(action)이 비어 있으면 "set"으로 취급한다."""
+    filled_rows = []
+    for row in rows:
+        filled = dict(row)
+        if not str(filled.get("action") or "").strip():
+            filled["action"] = "set"
+        for field in DEFAULT_FILLABLE_FIELDS:
+            value = filled.get(field)
+            is_blank = value is None or (isinstance(value, str) and not value.strip())
+            if is_blank and field in defaults:
+                filled[field] = defaults[field]
+        filled_rows.append(filled)
+    return filled_rows
 
 
 def parse_uploaded_excel(file_bytes: bytes) -> list:

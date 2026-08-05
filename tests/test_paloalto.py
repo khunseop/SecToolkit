@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from app.main import app
-from app.services.paloalto_excel import rows_from_sheet_values, build_template_bytes, COLUMN_FIELD_MAP
+from app.services.paloalto_excel import rows_from_sheet_values, build_template_bytes, apply_defaults, COLUMN_FIELD_MAP
 
 client = TestClient(app)
 
@@ -218,6 +218,33 @@ def test_rows_from_sheet_values_normalizes_rule_action_case():
     data_row = ["set", "", "RULE1", "FALSE", "Allow", "", "1.1.1.1", "", "", "", "", "", "", "", "", "", ""]
     rows = rows_from_sheet_values([headers, data_row])
     assert rows[0]["rule_action"] == "allow"
+
+def test_rows_from_sheet_values_column_order_independent():
+    # 헤더 이름으로 매핑하므로 컬럼 순서를 바꿔도 결과는 동일해야 한다
+    headers = ["rule_name", "source", "작업유형", "destination"]
+    data_row = ["RULE1", "1.1.1.1", "set", "2.2.2.2"]
+    rows = rows_from_sheet_values([headers, data_row])
+    assert len(rows) == 1
+    assert rows[0]["rule_name"] == "RULE1"
+    assert rows[0]["source"] == "1.1.1.1"
+    assert rows[0]["action"] == "set"
+    assert rows[0]["destination"] == "2.2.2.2"
+
+def test_apply_defaults_fills_missing_and_blank_fields():
+    defaults = {
+        "vsys": "vsys1", "disabled": False, "rule_action": "deny",
+        "from_zone": "trust", "source": "any", "source_user": "any",
+        "to_zone": "untrust", "destination": "any", "service": "application-default",
+        "application": "any", "description": "default desc", "log_end": "yes", "log_setting": "default",
+    }
+    # vsys 컬럼 자체가 없고(row에 키 없음), destination은 빈 문자열
+    row = {"action": "", "rule_name": "RULE1", "source": "10.0.0.1", "destination": ""}
+    filled = apply_defaults([row], defaults)[0]
+    assert filled["action"] == "set"
+    assert filled["vsys"] == "vsys1"
+    assert filled["destination"] == "any"
+    assert filled["source"] == "10.0.0.1"  # 이미 값이 있으면 기본값으로 덮어쓰지 않는다
+    assert filled["rule_name"] == "RULE1"
 
 def test_rows_from_sheet_values_empty():
     assert rows_from_sheet_values([]) == []
