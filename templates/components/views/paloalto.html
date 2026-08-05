@@ -7,13 +7,15 @@
     #view-paloalto .tool-card { padding: 1rem 1.25rem; }
     #view-paloalto .pa-row { border: 1px solid #e9ecef; border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; background: #fbfbfc; }
     #view-paloalto .pa-row.pa-row-invalid { border-color: #dc3545; box-shadow: 0 0 0 1px #dc3545; }
-    #view-paloalto .pa-field { display: flex; flex-direction: column; gap: 0.15rem; }
+    #view-paloalto .pa-field { display: flex; flex-direction: column; gap: 0.15rem; flex-shrink: 0; }
     #view-paloalto .pa-field label { font-size: 0.7rem; color: #868e96; white-space: nowrap; }
-    #view-paloalto .pa-fields-row { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem 0.6rem; }
-    /* set/delete/move 필드 그룹은 감싸는 div 없이 부모 flex 흐름에 그대로 합류시켜, 필드 수가 적은 delete/move는 한 줄로 붙는다 */
+    /* 행 높이를 항상 한 줄로 고정하고, 필드가 넘치면 그 행 안에서만 가로 스크롤되게 한다 */
+    #view-paloalto .pa-fields-row { display: flex; flex-wrap: nowrap; align-items: end; gap: 0.5rem 0.6rem; overflow-x: auto; padding-bottom: 0.35rem; }
+    /* set/delete/move 필드 그룹은 감싸는 div 없이 부모 flex 흐름에 그대로 합류시킨다 */
     #view-paloalto .pa-fields-set, #view-paloalto .pa-fields-delete, #view-paloalto .pa-fields-move { display: contents; }
-    #view-paloalto .pa-row-buttons { display: flex; gap: 0.25rem; margin-left: auto; }
-    #view-paloalto .pa-move-hint { flex-basis: 100%; }
+    /* 복제/삭제 버튼은 스크롤해도 항상 맨 앞에 고정되어 보이도록 sticky 처리 */
+    #view-paloalto .pa-row-buttons { display: flex; gap: 0.25rem; flex-shrink: 0; position: sticky; left: 0; background: #fbfbfc; z-index: 1; padding-right: 0.5rem; }
+    #view-paloalto .pa-move-hint { flex-shrink: 0; width: 260px; white-space: normal; }
     #view-paloalto textarea.pa-grid-value { resize: none; }
     #view-paloalto .pa-result-row { font-size: 0.85rem; }
     #view-paloalto .pa-result-error { background: #fff5f5; }
@@ -80,6 +82,10 @@
 <template id="paGridRowTemplate">
     <div class="pa-row">
         <div class="pa-fields-row">
+            <div class="pa-row-buttons">
+                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
+                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
+            </div>
             <div class="pa-field">
                 <label>작업유형</label>
                 <select class="form-select form-select-sm pa-grid-action" style="width: 90px;">
@@ -171,11 +177,6 @@
                 <strong>before</strong> = anchor_rule 바로 <strong>위</strong>로 이동 · <strong>after</strong> = anchor_rule 바로 <strong>아래</strong>로 이동
             </div>
         </div>
-
-            <div class="pa-row-buttons">
-                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
-                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
-            </div>
         </div>
     </div>
 </template>
@@ -183,6 +184,10 @@
 <template id="paServiceRowTemplate">
     <div class="pa-row">
         <div class="pa-fields-row">
+            <div class="pa-row-buttons">
+                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
+                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
+            </div>
             <div class="pa-field">
                 <label>vsys</label>
                 <input type="text" class="form-control form-control-sm pa-svc-vsys" style="width: 90px;">
@@ -201,10 +206,6 @@
             <div class="pa-field">
                 <label>port <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-sm pa-svc-port" style="width: 120px;" placeholder="443">
-            </div>
-            <div class="pa-row-buttons">
-                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
-                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
             </div>
         </div>
     </div>
