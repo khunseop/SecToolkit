@@ -1,44 +1,36 @@
 <!-- PAN-OS Security Policy CLI Generator -->
+<style>
+    /* PA Policy 화면이 열려 있을 때만 컨테이너 폭을 넓힌다 (다른 화면에는 영향 없음) */
+    .main-container:has(#view-paloalto.content-section.active) {
+        max-width: min(1600px, calc(100vw - 2rem));
+    }
+    #view-paloalto .tool-card { padding: 1rem 1.25rem; }
+    #view-paloalto .pa-row { border: 1px solid #e9ecef; border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; background: #fbfbfc; }
+    #view-paloalto .pa-row.pa-row-invalid { border-color: #dc3545; box-shadow: 0 0 0 1px #dc3545; }
+    #view-paloalto .pa-field { display: flex; flex-direction: column; gap: 0.15rem; }
+    #view-paloalto .pa-field label { font-size: 0.7rem; color: #868e96; white-space: nowrap; }
+    #view-paloalto .pa-fields { display: flex; flex-wrap: wrap; gap: 0.5rem 0.6rem; padding-top: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed #e9ecef; }
+    #view-paloalto textarea.pa-grid-value { resize: none; }
+    #view-paloalto .pa-result-row { font-size: 0.85rem; }
+    #view-paloalto .pa-result-error { background: #fff5f5; }
+    #view-paloalto .pa-result-ok { background: #f4fbf6; }
+    #view-paloalto .pa-result-row code { background: transparent; color: inherit; }
+</style>
 <div id="view-paloalto" class="content-section">
     <div class="tool-card">
         <h4 class="fw-bold mb-1">PA Policy CLI Generator</h4>
         <p class="text-muted small mb-3">
             팔로알토 방화벽 보안 정책(security rule) CLI 명령어를 행 단위로 생성합니다. 행 1개만 입력하면 단일 명령어, 여러 행을 입력하면 한 번에 여러 명령어가 생성됩니다.
+            작업유형(set/delete/move)에 따라 필요한 입력 항목만 아래에 표시됩니다.
             여러 값이 필요한 항목(from/source/source-user/to/destination/service/application)은 콤마(,)로 구분하거나, 엑셀에서 여러 행을 복사해 그대로 붙여넣으면 자동으로 여러 값으로 인식됩니다.
-            <strong>delete</strong>는 필드를 비워두면 rule 전체를 삭제하고, 필드 하나에 값 하나만 입력하면 해당 객체 하나만 rule에서 삭제합니다(예: source에 1.1.1.1만 입력).
         </p>
 
-        <div class="table-responsive mb-3">
-            <table class="table table-sm align-middle" style="min-width: 1900px;">
-                <thead>
-                    <tr class="small text-muted">
-                        <th style="width: 90px;">작업유형</th>
-                        <th style="width: 90px;">vsys</th>
-                        <th style="width: 140px;">rule_name</th>
-                        <th style="width: 70px;">disabled</th>
-                        <th style="width: 110px;">action</th>
-                        <th style="width: 130px;">from</th>
-                        <th style="width: 150px;">source</th>
-                        <th style="width: 130px;">source-user</th>
-                        <th style="width: 130px;">to</th>
-                        <th style="width: 150px;">destination</th>
-                        <th style="width: 150px;">service</th>
-                        <th style="width: 150px;">application</th>
-                        <th style="width: 170px;">description</th>
-                        <th style="width: 90px;">log-end</th>
-                        <th style="width: 130px;">log-setting</th>
-                        <th style="width: 100px;">move_position</th>
-                        <th style="width: 150px;">anchor_rule</th>
-                        <th style="width: 40px;"></th>
-                    </tr>
-                </thead>
-                <tbody id="paGridBody"></tbody>
-            </table>
-        </div>
+        <div id="paGridBody"></div>
 
         <div class="d-flex flex-wrap gap-2 mb-3">
             <button class="btn btn-outline-secondary btn-sm" onclick="addGridRow()">+ 행 추가</button>
             <button class="btn btn-outline-secondary btn-sm" onclick="savePaDefaults()">1행 값을 기본값으로 저장</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="applyDefaultsToAllRows()">모든 행에 기본값 적용</button>
             <button class="btn btn-primary btn-sm px-3 fw-bold ms-auto" onclick="generateBulkFromGrid()">명령어 생성</button>
         </div>
 
@@ -52,63 +44,108 @@
         <div>
             <label class="small fw-bold mb-1 d-flex justify-content-between">
                 Generated Commands
-                <button class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard('paBulkResult')">복사</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="copyAllPaResults()">전체 복사</button>
             </label>
-            <textarea class="form-control font-monospace" id="paBulkResult" rows="10" readonly></textarea>
+            <div id="paBulkResultList" class="border rounded p-2" style="min-height: 3rem;"></div>
         </div>
     </div>
 </div>
 
 <template id="paGridRowTemplate">
-    <tr>
-        <td>
-            <select class="form-select form-select-sm pa-grid-action">
-                <option value="set">set</option>
-                <option value="delete">delete</option>
-                <option value="move">move</option>
-            </select>
-        </td>
-        <td><input type="text" class="form-control form-control-sm pa-grid-vsys"></td>
-        <td><input type="text" class="form-control form-control-sm pa-grid-rule_name"></td>
-        <td class="text-center"><input type="checkbox" class="form-check-input pa-grid-disabled"></td>
-        <td>
-            <select class="form-select form-select-sm pa-grid-rule_action">
-                <option value="allow">allow</option>
-                <option value="deny">deny</option>
-                <option value="drop">drop</option>
-                <option value="reset-client">reset-client</option>
-                <option value="reset-server">reset-server</option>
-                <option value="reset-both">reset-both</option>
-            </select>
-        </td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-from_zone"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-source"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-source_user"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-to_zone"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-destination"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-service"></textarea></td>
-        <td><textarea rows="1" class="form-control form-control-sm pa-grid-application"></textarea></td>
-        <td><input type="text" class="form-control form-control-sm pa-grid-description"></td>
-        <td>
-            <select class="form-select form-select-sm pa-grid-log_end">
-                <option value="">(unset)</option>
-                <option value="yes">yes</option>
-                <option value="no">no</option>
-            </select>
-        </td>
-        <td><input type="text" class="form-control form-control-sm pa-grid-log_setting"></td>
-        <td>
-            <select class="form-select form-select-sm pa-grid-move_position">
-                <option value="">-</option>
-                <option value="top">top</option>
-                <option value="bottom">bottom</option>
-                <option value="before">before</option>
-                <option value="after">after</option>
-            </select>
-        </td>
-        <td><input type="text" class="form-control form-control-sm pa-grid-anchor_rule"></td>
-        <td class="text-center">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">×</button>
-        </td>
-    </tr>
+    <div class="pa-row">
+        <div class="d-flex flex-wrap align-items-end gap-2">
+            <div class="pa-field">
+                <label>작업유형</label>
+                <select class="form-select form-select-sm pa-grid-action" style="width: 90px;">
+                    <option value="set">set</option>
+                    <option value="delete">delete</option>
+                    <option value="move">move</option>
+                </select>
+            </div>
+            <div class="pa-field">
+                <label>vsys</label>
+                <input type="text" class="form-control form-control-sm pa-grid-vsys" style="width: 90px;">
+            </div>
+            <div class="pa-field">
+                <label>rule_name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-sm pa-grid-rule_name" style="width: 160px;">
+            </div>
+            <div class="ms-auto d-flex gap-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
+                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
+            </div>
+        </div>
+
+        <!-- set 전용 필드 -->
+        <div class="pa-fields pa-fields-set">
+            <div class="pa-field"><label>disabled</label><input type="checkbox" class="form-check-input pa-grid-disabled" style="margin-top: 0.5rem;"></div>
+            <div class="pa-field">
+                <label>action</label>
+                <select class="form-select form-select-sm pa-grid-rule_action" style="width: 110px;">
+                    <option value="allow">allow</option>
+                    <option value="deny">deny</option>
+                    <option value="drop">drop</option>
+                    <option value="reset-client">reset-client</option>
+                    <option value="reset-server">reset-server</option>
+                    <option value="reset-both">reset-both</option>
+                </select>
+            </div>
+            <div class="pa-field"><label>from</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-from_zone" style="width: 130px;"></textarea></div>
+            <div class="pa-field"><label>source</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-source" style="width: 140px;"></textarea></div>
+            <div class="pa-field"><label>source-user</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-source_user" style="width: 130px;"></textarea></div>
+            <div class="pa-field"><label>to</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-to_zone" style="width: 130px;"></textarea></div>
+            <div class="pa-field"><label>destination</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-destination" style="width: 140px;"></textarea></div>
+            <div class="pa-field"><label>service</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-service" style="width: 140px;"></textarea></div>
+            <div class="pa-field"><label>application</label><textarea rows="1" class="form-control form-control-sm pa-grid-value pa-grid-application" style="width: 140px;"></textarea></div>
+            <div class="pa-field"><label>description</label><input type="text" class="form-control form-control-sm pa-grid-description" style="width: 170px;"></div>
+            <div class="pa-field">
+                <label>log-end</label>
+                <select class="form-select form-select-sm pa-grid-log_end" style="width: 90px;">
+                    <option value="">(unset)</option>
+                    <option value="yes">yes</option>
+                    <option value="no">no</option>
+                </select>
+            </div>
+            <div class="pa-field"><label>log-setting</label><input type="text" class="form-control form-control-sm pa-grid-log_setting" style="width: 130px;"></div>
+        </div>
+
+        <!-- delete 전용 필드: 필드 1개 + 값 1개만 선택 가능하도록 강제 -->
+        <div class="pa-fields pa-fields-delete">
+            <div class="pa-field">
+                <label>삭제 대상 필드</label>
+                <select class="form-select form-select-sm pa-delete-field" style="width: 150px;">
+                    <option value="">(rule 전체 삭제)</option>
+                    <option value="from_zone">from</option>
+                    <option value="source">source</option>
+                    <option value="source_user">source-user</option>
+                    <option value="to_zone">to</option>
+                    <option value="destination">destination</option>
+                    <option value="service">service</option>
+                    <option value="application">application</option>
+                </select>
+            </div>
+            <div class="pa-field">
+                <label>값</label>
+                <input type="text" class="form-control form-control-sm pa-delete-value" style="width: 180px;" disabled>
+            </div>
+        </div>
+
+        <!-- move 전용 필드 -->
+        <div class="pa-fields pa-fields-move">
+            <div class="pa-field">
+                <label>move_position</label>
+                <select class="form-select form-select-sm pa-grid-move_position" style="width: 110px;">
+                    <option value="">-</option>
+                    <option value="top">top</option>
+                    <option value="bottom">bottom</option>
+                    <option value="before">before</option>
+                    <option value="after">after</option>
+                </select>
+            </div>
+            <div class="pa-field pa-anchor-field">
+                <label>anchor_rule</label>
+                <input type="text" class="form-control form-control-sm pa-grid-anchor_rule" style="width: 160px;">
+            </div>
+        </div>
+    </div>
 </template>

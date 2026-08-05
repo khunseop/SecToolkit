@@ -129,8 +129,7 @@ class PaloAltoService:
         if action == "set":
             parts = [f'{PaloAltoService._rule_base(request.vsys)} "{request.rule_name.strip()}"']
 
-            if request.disabled:
-                parts.append("disabled yes")
+            parts.append("disabled yes" if request.disabled else "disabled no")
 
             if request.rule_action:
                 parts.append(f"action {request.rule_action}")

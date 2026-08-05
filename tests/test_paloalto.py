@@ -12,7 +12,11 @@ def generate_one(row):
 def test_set_basic():
     result = generate_one({"action": "set", "rule_name": "RULE1"})
     assert result["error"] is None
-    assert result["command"] == 'set rulebase security rules "RULE1" action allow'
+    assert result["command"] == 'set rulebase security rules "RULE1" disabled no action allow'
+
+def test_set_not_disabled_emits_disabled_no():
+    result = generate_one({"action": "set", "rule_name": "RULE1", "disabled": False})
+    assert "disabled no" in result["command"]
 
 def test_set_with_vsys_and_multi_values():
     result = generate_one({
