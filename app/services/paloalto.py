@@ -163,3 +163,38 @@ class PaloAltoService:
                 "error": outcome.get("error"),
             })
         return {"results": results}
+
+    @staticmethod
+    def _object_base(vsys: str) -> str:
+        if vsys:
+            return f'set vsys {vsys} service'
+        return "set service"
+
+    @staticmethod
+    def generate_service_command(request) -> dict:
+        if not request.name.strip():
+            return {"error": "Service 이름은 필수입니다."}
+
+        protocol = request.protocol.strip().lower()
+        if protocol not in ("tcp", "udp"):
+            return {"error": "protocol은 tcp 또는 udp만 지원합니다."}
+
+        port = request.port.strip()
+        if not port:
+            return {"error": "port는 필수입니다."}
+
+        name = PaloAltoService._quote_if_needed(request.name.strip())
+        command = f'{PaloAltoService._object_base(request.vsys)} {name} protocol {protocol} port {port}'
+        return {"command": command}
+
+    @staticmethod
+    def generate_service_bulk(requests: list) -> dict:
+        results = []
+        for index, request in enumerate(requests):
+            outcome = PaloAltoService.generate_service_command(request)
+            results.append({
+                "row_index": index,
+                "command": outcome.get("command"),
+                "error": outcome.get("error"),
+            })
+        return {"results": results}

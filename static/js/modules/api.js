@@ -119,6 +119,15 @@ export async function postPaloAltoGenerateBulk(rows) {
     return await response.json();
 }
 
+export async function postPaloAltoGenerateServiceBulk(rows) {
+    const response = await fetch('/api/paloalto/generate-service-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows })
+    });
+    return await response.json();
+}
+
 export async function postPaloAltoGenerateBulkExcel(file) {
     const formData = new FormData();
     formData.append('file', file);

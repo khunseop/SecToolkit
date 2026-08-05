@@ -9,6 +9,28 @@ def generate_one(row):
     assert response.status_code == 200
     return response.json()["results"][0]
 
+def generate_one_service(row):
+    response = client.post("/api/paloalto/generate-service-bulk", json={"rows": [row]})
+    assert response.status_code == 200
+    return response.json()["results"][0]
+
+def test_service_object_basic():
+    result = generate_one_service({"name": "TCP-443", "protocol": "tcp", "port": "443"})
+    assert result["error"] is None
+    assert result["command"] == "set service TCP-443 protocol tcp port 443"
+
+def test_service_object_with_vsys():
+    result = generate_one_service({"name": "TCP-443", "protocol": "tcp", "port": "443", "vsys": "vsys1"})
+    assert result["command"] == "set vsys vsys1 service TCP-443 protocol tcp port 443"
+
+def test_service_object_requires_name():
+    result = generate_one_service({"name": "", "protocol": "tcp", "port": "443"})
+    assert result["error"] is not None
+
+def test_service_object_invalid_protocol():
+    result = generate_one_service({"name": "X", "protocol": "icmp", "port": "443"})
+    assert result["error"] is not None
+
 def test_set_basic():
     result = generate_one({"action": "set", "rule_name": "RULE1"})
     assert result["error"] is None

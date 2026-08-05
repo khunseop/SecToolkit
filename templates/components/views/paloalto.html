@@ -9,7 +9,11 @@
     #view-paloalto .pa-row.pa-row-invalid { border-color: #dc3545; box-shadow: 0 0 0 1px #dc3545; }
     #view-paloalto .pa-field { display: flex; flex-direction: column; gap: 0.15rem; }
     #view-paloalto .pa-field label { font-size: 0.7rem; color: #868e96; white-space: nowrap; }
-    #view-paloalto .pa-fields { display: flex; flex-wrap: wrap; gap: 0.5rem 0.6rem; padding-top: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed #e9ecef; }
+    #view-paloalto .pa-fields-row { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem 0.6rem; }
+    /* set/delete/move 필드 그룹은 감싸는 div 없이 부모 flex 흐름에 그대로 합류시켜, 필드 수가 적은 delete/move는 한 줄로 붙는다 */
+    #view-paloalto .pa-fields-set, #view-paloalto .pa-fields-delete, #view-paloalto .pa-fields-move { display: contents; }
+    #view-paloalto .pa-row-buttons { display: flex; gap: 0.25rem; margin-left: auto; }
+    #view-paloalto .pa-move-hint { flex-basis: 100%; }
     #view-paloalto textarea.pa-grid-value { resize: none; }
     #view-paloalto .pa-result-row { font-size: 0.85rem; }
     #view-paloalto .pa-result-error { background: #fff5f5; }
@@ -25,14 +29,14 @@
             여러 값이 필요한 항목(from/source/source-user/to/destination/service/application)은 콤마(,)로 구분하거나, 엑셀에서 여러 행을 복사해 그대로 붙여넣으면 자동으로 여러 값으로 인식됩니다.
         </p>
 
-        <div id="paGridBody"></div>
-
-        <div class="d-flex flex-wrap gap-2 mb-3">
+        <div class="d-flex flex-wrap gap-2 mb-2">
             <button class="btn btn-outline-secondary btn-sm" onclick="addGridRow()">+ 행 추가</button>
             <button class="btn btn-outline-secondary btn-sm" onclick="savePaDefaults()">1행 값을 기본값으로 저장</button>
             <button class="btn btn-outline-secondary btn-sm" onclick="applyDefaultsToAllRows()">모든 행에 기본값 적용</button>
             <button class="btn btn-primary btn-sm px-3 fw-bold ms-auto" onclick="generateBulkFromGrid()">명령어 생성</button>
         </div>
+
+        <div id="paGridBody" class="mb-3"></div>
 
         <div class="d-flex gap-2 align-items-center mb-3 pt-2 border-top">
             <span class="small text-muted me-1">엑셀로 채워서 업로드:</span>
@@ -49,11 +53,33 @@
             <div id="paBulkResultList" class="border rounded p-2" style="min-height: 3rem;"></div>
         </div>
     </div>
+
+    <div class="tool-card">
+        <h4 class="fw-bold mb-1">Service Object 생성</h4>
+        <p class="text-muted small mb-3">
+            서비스 오브젝트 CLI 명령어를 생성합니다. 예: <code>set service TCP-443 protocol tcp port 443</code>
+        </p>
+
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="addServiceRow()">+ 행 추가</button>
+            <button class="btn btn-primary btn-sm px-3 fw-bold ms-auto" onclick="generateServiceBulk()">명령어 생성</button>
+        </div>
+
+        <div id="paServiceGridBody" class="mb-3"></div>
+
+        <div>
+            <label class="small fw-bold mb-1 d-flex justify-content-between">
+                Generated Commands
+                <button class="btn btn-outline-secondary btn-sm" onclick="copyAllServiceResults()">전체 복사</button>
+            </label>
+            <div id="paServiceResultList" class="border rounded p-2" style="min-height: 3rem;"></div>
+        </div>
+    </div>
 </div>
 
 <template id="paGridRowTemplate">
     <div class="pa-row">
-        <div class="d-flex flex-wrap align-items-end gap-2">
+        <div class="pa-fields-row">
             <div class="pa-field">
                 <label>작업유형</label>
                 <select class="form-select form-select-sm pa-grid-action" style="width: 90px;">
@@ -70,11 +96,6 @@
                 <label>rule_name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-sm pa-grid-rule_name" style="width: 160px;">
             </div>
-            <div class="ms-auto d-flex gap-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
-                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
-            </div>
-        </div>
 
         <!-- set 전용 필드 -->
         <div class="pa-fields pa-fields-set">
@@ -134,17 +155,56 @@
         <div class="pa-fields pa-fields-move">
             <div class="pa-field">
                 <label>move_position</label>
-                <select class="form-select form-select-sm pa-grid-move_position" style="width: 110px;">
+                <select class="form-select form-select-sm pa-grid-move_position" style="width: 110px;" title="top: 맨 위로 / bottom: 맨 아래로 / before: 기준 정책 바로 위로 / after: 기준 정책 바로 아래로">
                     <option value="">-</option>
-                    <option value="top">top</option>
-                    <option value="bottom">bottom</option>
-                    <option value="before">before</option>
-                    <option value="after">after</option>
+                    <option value="top">top (맨 위)</option>
+                    <option value="bottom">bottom (맨 아래)</option>
+                    <option value="before">before (기준 정책 위)</option>
+                    <option value="after">after (기준 정책 아래)</option>
                 </select>
             </div>
             <div class="pa-field pa-anchor-field">
-                <label>anchor_rule</label>
+                <label>anchor_rule (기준 정책)</label>
                 <input type="text" class="form-control form-control-sm pa-grid-anchor_rule" style="width: 160px;">
+            </div>
+            <div class="pa-move-hint text-muted small">
+                <strong>before</strong> = anchor_rule 바로 <strong>위</strong>로 이동 · <strong>after</strong> = anchor_rule 바로 <strong>아래</strong>로 이동
+            </div>
+        </div>
+
+            <div class="pa-row-buttons">
+                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
+                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="paServiceRowTemplate">
+    <div class="pa-row">
+        <div class="pa-fields-row">
+            <div class="pa-field">
+                <label>vsys</label>
+                <input type="text" class="form-control form-control-sm pa-svc-vsys" style="width: 90px;">
+            </div>
+            <div class="pa-field">
+                <label>name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-sm pa-svc-name" style="width: 150px;" placeholder="TCP-443">
+            </div>
+            <div class="pa-field">
+                <label>protocol</label>
+                <select class="form-select form-select-sm pa-svc-protocol" style="width: 90px;">
+                    <option value="tcp">tcp</option>
+                    <option value="udp">udp</option>
+                </select>
+            </div>
+            <div class="pa-field">
+                <label>port <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-sm pa-svc-port" style="width: 120px;" placeholder="443">
+            </div>
+            <div class="pa-row-buttons">
+                <button type="button" class="btn btn-sm btn-outline-secondary pa-row-dup" title="행 복제">⧉ 복제</button>
+                <button type="button" class="btn btn-sm btn-outline-danger pa-row-del" title="행 삭제">× 삭제</button>
             </div>
         </div>
     </div>

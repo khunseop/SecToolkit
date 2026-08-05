@@ -23,6 +23,15 @@ class PolicyRuleRequest(BaseModel):
 class BulkGenerateRequest(BaseModel):
     rows: List[PolicyRuleRequest]
 
+class ServiceObjectRequest(BaseModel):
+    vsys: Optional[str] = ""
+    name: str
+    protocol: str  # tcp | udp
+    port: str
+
+class ServiceBulkGenerateRequest(BaseModel):
+    rows: List[ServiceObjectRequest]
+
 class PolicyDefaults(BaseModel):
     vsys: Optional[str] = ""
     disabled: Optional[bool] = False

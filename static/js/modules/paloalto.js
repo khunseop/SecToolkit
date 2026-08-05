@@ -1,4 +1,4 @@
-import { fetchPaloAltoDefaults, postPaloAltoDefaults, postPaloAltoGenerateBulk, postPaloAltoGenerateBulkExcel } from './api.js';
+import { fetchPaloAltoDefaults, postPaloAltoDefaults, postPaloAltoGenerateBulk, postPaloAltoGenerateBulkExcel, postPaloAltoGenerateServiceBulk } from './api.js';
 import { copyTextToClipboard } from './ui.js';
 
 const GRID_FIELDS = [
@@ -105,8 +105,8 @@ function duplicateRow(rowEl) {
     rowEl.after(newRow);
 }
 
-function renderBulkResults(results) {
-    const container = document.getElementById('paBulkResultList');
+function renderBulkResults(results, containerId = 'paBulkResultList') {
+    const container = document.getElementById(containerId);
     container.innerHTML = '';
     if (results.length === 0) return;
     for (const r of results) {
@@ -226,7 +226,78 @@ export function copyAllPaResults() {
     copyTextToClipboard(commands.join('\n'));
 }
 
+// --- Service Object 생성 ---
+
+const SERVICE_FIELDS = ['vsys', 'name', 'protocol', 'port'];
+
+function readServiceRow(rowEl) {
+    const row = {};
+    for (const field of SERVICE_FIELDS) {
+        const el = rowEl.querySelector(`.pa-svc-${field}`);
+        if (!el) continue;
+        row[field] = el.value.trim();
+    }
+    return row;
+}
+
+function wireServiceRow(rowEl) {
+    rowEl.querySelector('.pa-row-dup').addEventListener('click', () => duplicateServiceRow(rowEl));
+    rowEl.querySelector('.pa-row-del').addEventListener('click', () => rowEl.remove());
+}
+
+function duplicateServiceRow(rowEl) {
+    const newRow = addServiceRow();
+    for (const field of SERVICE_FIELDS) {
+        const src = rowEl.querySelector(`.pa-svc-${field}`);
+        const dst = newRow.querySelector(`.pa-svc-${field}`);
+        if (src && dst) dst.value = src.value;
+    }
+    rowEl.after(newRow);
+}
+
+export function addServiceRow() {
+    const template = document.getElementById('paServiceRowTemplate');
+    const row = template.content.firstElementChild.cloneNode(true);
+    wireServiceRow(row);
+    document.getElementById('paServiceGridBody').appendChild(row);
+    return row;
+}
+
+export async function generateServiceBulk() {
+    document.querySelectorAll('#paServiceGridBody .pa-row-invalid').forEach(el => el.classList.remove('pa-row-invalid'));
+    const rowEls = Array.from(document.querySelectorAll('#paServiceGridBody .pa-row'));
+    const invalidRows = rowEls.filter(el => !el.querySelector('.pa-svc-name').value.trim() || !el.querySelector('.pa-svc-port').value.trim());
+    if (invalidRows.length > 0) {
+        invalidRows.forEach(el => el.classList.add('pa-row-invalid'));
+        invalidRows[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('name 또는 port가 비어 있는 행이 있습니다 (빨간 테두리로 표시됨).');
+        return;
+    }
+    const rows = rowEls.map(readServiceRow);
+    if (rows.length === 0) {
+        alert('최소 1개 이상의 행을 입력하세요.');
+        return;
+    }
+    const result = await postPaloAltoGenerateServiceBulk(rows);
+    if (result.error) {
+        renderBulkResults([{ row_index: 0, error: result.error }], 'paServiceResultList');
+        return;
+    }
+    renderBulkResults(result.results, 'paServiceResultList');
+}
+
+export function copyAllServiceResults() {
+    const commands = Array.from(document.querySelectorAll('#paServiceResultList .pa-result-ok code'))
+        .map(el => el.textContent);
+    if (commands.length === 0) {
+        alert('복사할 성공 결과가 없습니다.');
+        return;
+    }
+    copyTextToClipboard(commands.join('\n'));
+}
+
 export async function initPaloAlto() {
     cachedDefaults = await fetchPaloAltoDefaults();
     addGridRow();
+    addServiceRow();
 }

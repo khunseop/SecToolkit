@@ -3,7 +3,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 import io
 
-from app.schemas.paloalto import PolicyRuleRequest, PolicyDefaults, BulkGenerateRequest
+from app.schemas.paloalto import PolicyRuleRequest, PolicyDefaults, BulkGenerateRequest, ServiceBulkGenerateRequest
 from app.services.paloalto import PaloAltoService
 from app.services.paloalto_excel import build_template_bytes, parse_uploaded_excel
 
@@ -21,6 +21,10 @@ async def save_paloalto_defaults_api(request: PolicyDefaults):
 @router.post("/paloalto/generate-bulk")
 async def generate_paloalto_bulk_api(request: BulkGenerateRequest):
     return PaloAltoService.generate_bulk(request.rows)
+
+@router.post("/paloalto/generate-service-bulk")
+async def generate_paloalto_service_bulk_api(request: ServiceBulkGenerateRequest):
+    return PaloAltoService.generate_service_bulk(request.rows)
 
 @router.get("/paloalto/template")
 async def download_paloalto_template_api():
