@@ -1,4 +1,4 @@
-import { fetchUnits, postConvert, postBeautifyJson, postIpIntersect } from './api.js';
+import { fetchUnits, postConvert, postBeautifyJson, postIpIntersect, postIpSummarize } from './api.js';
 
 let unitMap = {};
 
@@ -138,6 +138,63 @@ export async function findIpIntersections() {
     }
 }
 
+export async function summarizeIps() {
+    const inputEl = document.getElementById('summarizeInput');
+    const classC = document.getElementById('summarizeClassC').checked;
+    const ipList = inputEl.value;
+
+    if (!ipList.trim()) {
+        alert("IP 목록을 입력해 주세요.");
+        return;
+    }
+
+    const resultsDiv = document.getElementById('summarizeResults');
+    const errorsDiv = document.getElementById('summarizeErrors');
+    resultsDiv.innerHTML = '<div class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary"></div><br><small class="text-muted">축약 중...</small></div>';
+    errorsDiv.classList.add('d-none');
+
+    try {
+        const data = await postIpSummarize(ipList, classC);
+        const results = data.results || [];
+        const errors = data.errors || [];
+
+        document.getElementById('summarizeResultCount').innerText = `${results.length} blocks`;
+
+        if (results.length === 0) {
+            resultsDiv.innerHTML = '<div class="text-center text-muted py-5 mt-5"><small>축약할 수 있는 유효한 IP가 없습니다.</small></div>';
+            document.getElementById('summarizeResultsText').value = "";
+            document.getElementById('btnCopySummarize').disabled = true;
+        } else {
+            let html = '';
+            let textResults = '';
+
+            results.forEach(r => {
+                html += `
+                    <div class="card mb-2 border-0 shadow-sm">
+                        <div class="card-body p-2 small">
+                            <div class="fw-bold text-primary mb-1">${r.cidr}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">${r.netmask}</div>
+                        </div>
+                    </div>
+                `;
+                textResults += `${r.cidr} (${r.netmask})\n`;
+            });
+
+            resultsDiv.innerHTML = html;
+            document.getElementById('summarizeResultsText').value = textResults;
+            document.getElementById('btnCopySummarize').disabled = false;
+        }
+
+        if (errors.length > 0) {
+            document.getElementById('summarizeErrorList').innerText = errors.join('\n');
+            errorsDiv.classList.remove('d-none');
+        }
+
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-danger small p-2">Error: ${error.message}</div>`;
+    }
+}
+
 export function initIpTools() {
     const inputs = ['intersectInputA', 'intersectInputB'];
     inputs.forEach(id => {
@@ -150,4 +207,13 @@ export function initIpTools() {
             });
         }
     });
+
+    const summarizeInput = document.getElementById('summarizeInput');
+    const summarizeBadge = document.getElementById('summarizeCount');
+    if (summarizeInput && summarizeBadge) {
+        summarizeInput.addEventListener('input', () => {
+            const lines = summarizeInput.value.split('\n').filter(l => l.trim()).length;
+            summarizeBadge.innerText = `${lines} lines`;
+        });
+    }
 }

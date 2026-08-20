@@ -96,6 +96,15 @@ export async function postIpIntersect(listA, listB) {
     return await response.json();
 }
 
+export async function postIpSummarize(ipList, classC) {
+    const response = await fetch('/api/ip-summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip_list: ipList, class_c: classC })
+    });
+    return await response.json();
+}
+
 export async function fetchPaloAltoDefaults() {
     const response = await fetch('/api/paloalto/defaults');
     return await response.json();

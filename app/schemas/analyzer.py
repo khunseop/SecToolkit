@@ -22,3 +22,7 @@ class DnsLookupResponse(BaseModel):
 class IpIntersectRequest(BaseModel):
     list_a: str
     list_b: str
+
+class IpSummarizeRequest(BaseModel):
+    ip_list: str
+    class_c: bool = False

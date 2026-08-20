@@ -255,3 +255,38 @@ class AnalyzerService:
                     })
 
         return {"matches": matches}
+
+    @staticmethod
+    def summarize_ips(raw_text: str, class_c: bool = False) -> dict:
+        lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+        networks = []
+        errors = []
+
+        for line in lines:
+            try:
+                if '-' in line:
+                    start_ip, end_ip = [ip.strip() for ip in line.split('-')]
+                    start = ipaddress.IPv4Address(start_ip)
+                    end = ipaddress.IPv4Address(end_ip)
+                    if int(start) > int(end):
+                        raise ValueError("range start is after end")
+                    networks.extend(ipaddress.summarize_address_range(start, end))
+                else:
+                    networks.append(ipaddress.IPv4Network(line, strict=False))
+            except Exception:
+                errors.append(line)
+
+        if class_c:
+            collapsed = sorted(
+                {ipaddress.IPv4Network(f"{net.network_address}/24", strict=False) for net in networks},
+                key=lambda n: int(n.network_address)
+            )
+        else:
+            collapsed = list(ipaddress.collapse_addresses(networks))
+
+        results = [
+            {"cidr": str(net), "netmask": f"{net.network_address} {net.netmask}"}
+            for net in collapsed
+        ]
+
+        return {"results": results, "errors": errors}
